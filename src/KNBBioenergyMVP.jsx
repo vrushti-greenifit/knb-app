@@ -736,14 +736,12 @@ export default function KNBPlatform() {
   const [searchQ, setSearchQ] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [certFilter, setCertFilter] = useState(false);
-  const [prices, setPrices] = useState(() =>
+  const [prices] = useState(() =>
     INIT_PRICES.map(p => {
       const chg = p.price - p.open;
-      return { ...p, up: chg >= 0, chg, pct: ((chg/p.open)*100).toFixed(2),
-        history: Array.from({length:60},(_,i)=>Math.round(p.open+(p.price-p.open)*(i/59)+(Math.random()-0.5)*80)) };
+      return { ...p, up: chg >= 0, chg, pct: ((chg/p.open)*100).toFixed(2) };
     })
   );
-  const [deals, setDeals] = useState([]);
   const [liveTime, setLiveTime] = useState(new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
   const [regRole, setRegRole] = useState("buyer");
   const [regStep, setRegStep] = useState(1);
@@ -753,41 +751,12 @@ export default function KNBPlatform() {
   const [selectedHeroRole, setSelectedHeroRole] = useState(null);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [enquiryProduct, setEnquiryProduct] = useState(null);
-  const pricesRef = useRef([]);
-  useEffect(() => { pricesRef.current = prices; }, [prices]);
 
-  // Price updates every 1.2s
+  // Clock only
   useEffect(() => {
     const t = setInterval(() => {
       setLiveTime(new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
-      setPrices(prev => prev.map(p => {
-        const delta = (Math.random()-0.48)*p.price*0.003;
-        const np = Math.round(Math.max(p.open*0.92, p.price+delta));
-        const chg = np - p.open;
-        return { ...p, price:np, high:Math.max(p.high,np), low:Math.min(p.low,np),
-          up:delta>=0, chg, pct:((chg/p.open)*100).toFixed(2),
-          history:[...p.history.slice(-59), np] };
-      }));
-    }, 1200);
-    return () => clearInterval(t);
-  }, []);
-
-  // Deal feed every 1.8s
-  useEffect(() => {
-    const LOCS = ["Mumbai","Pune","Nagpur","Surat","Ahmedabad","Delhi","Chennai","Hyderabad","Kolkata","Indore"];
-    const t = setInterval(() => {
-      if (!pricesRef.current.length) return;
-      if (Math.random() > 0.3) {
-        const p = pricesRef.current[Math.floor(Math.random()*pricesRef.current.length)];
-        const qty = Math.ceil(Math.random()*8)*5;
-        setDeals(prev => [{
-          id: Date.now(), name:p.short, fullName:p.name,
-          price:p.price, qty, loc:LOCS[Math.floor(Math.random()*LOCS.length)],
-          buy:Math.random()>0.4,
-          time:new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"})
-        }, ...prev.slice(0,11)]);
-      }
-    }, 1800);
+    }, 1000);
     return () => clearInterval(t);
   }, []);
 
@@ -1039,60 +1008,31 @@ export default function KNBPlatform() {
             <div className="live-pill"><div className="live-dot"/>Live · {liveTime}</div>
           </div>
 
-          {/* Trading Terminal */}
+          {/* Price Terminal */}
           <div className="terminal-wrap">
             <div className="terminal-header">
               <div style={{display:"flex",gap:14,alignItems:"center"}}>
-                <span style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.45)",letterSpacing:"1.5px",textTransform:"uppercase"}}>KNB Spot Exchange</span>
-                <span style={{fontSize:10,color:"rgba(255,255,255,0.2)"}}>|</span>
-                <span style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Auto-refresh: 1.2s</span>
+                <span style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.45)",letterSpacing:"1.5px",textTransform:"uppercase"}}>KNB Spot Exchange · Catalog Prices</span>
               </div>
               <div className="live-pill" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.07)"}}>
                 <div className="live-dot"/><span style={{fontSize:11,fontFamily:"monospace"}}>{liveTime}</span>
               </div>
             </div>
-            <div className="terminal-body">
-              {/* Price Cards */}
-              <div className="t-cards-grid">
-                {prices.map(p => (
-                  <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`}>
-                    <div className="t-short">{p.short}</div>
-                    <div className="t-name">{p.name}</div>
-                    <div className={`t-price-big ${p.up?"t-green":"t-red"}`}>₹{p.price.toLocaleString("en-IN")}</div>
-                    <div className={`t-chg-row ${p.up?"t-green":"t-red"}`}>{p.up?"▲":"▼"} {p.up?"+":""}{p.chg} ({p.up?"+":""}{p.pct}%)</div>
-                    <MiniChart history={p.history} up={p.up}/>
-                    <div className="t-ohlc">
-                      <div className="t-ohlc-item"><div className="t-ohlc-k">Open</div><div className="t-ohlc-v">₹{p.open.toLocaleString("en-IN")}</div></div>
-                      <div className="t-ohlc-item"><div className="t-ohlc-k">High</div><div className="t-ohlc-v" style={{color:"#27ae60"}}>₹{p.high.toLocaleString("en-IN")}</div></div>
-                      <div className="t-ohlc-item"><div className="t-ohlc-k">Low</div><div className="t-ohlc-v" style={{color:"#e74c3c"}}>₹{p.low.toLocaleString("en-IN")}</div></div>
-                      <div className="t-ohlc-item"><div className="t-ohlc-k">Cal</div><div className="t-ohlc-v">{p.cal}</div></div>
-                    </div>
-                    <div className="t-bid-ask">
-                      <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(p.price-Math.round(p.price*0.001)).toLocaleString("en-IN")}</div></div>
-                      <div className="t-ask"><div className="t-ba-lbl">Ask</div><div className="t-ba-val t-red">₹{(p.price+Math.round(p.price*0.001)).toLocaleString("en-IN")}</div></div>
-                    </div>
-                    <div className="t-vol-row">Vol: {p.vol} MT today</div>
+            <div style={{padding:14,display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+              {prices.map(p => (
+                <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`}>
+                  <div className="t-short">{p.short}</div>
+                  <div className="t-name">{p.name}</div>
+                  <div className="t-price-big" style={{color:"#f5a623"}}>₹{p.price.toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"rgba(255,255,255,0.4)"}}>/MT</span></div>
+                  <div className="t-ohlc" style={{marginTop:10}}>
+                    <div className="t-ohlc-item"><div className="t-ohlc-k">Cal. Value</div><div className="t-ohlc-v">{p.cal} kcal/kg</div></div>
+                    <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"#f5a623"}}>{p.grade.split("·")[0].trim()}</div></div>
                   </div>
-                ))}
-              </div>
-              {/* Live Deal Feed */}
-              <div className="deal-panel">
-                <div className="deal-title">Live Deals</div>
-                {deals.length === 0 && <div style={{fontSize:11,color:"rgba(255,255,255,0.2)",textAlign:"center",marginTop:20}}>Waiting for deals…</div>}
-                {deals.map(d => (
-                  <div key={d.id} className={`deal-row ${d.buy?"buy":"sell"}`}>
-                    <div className="deal-top">
-                      <span className="deal-tag">{d.buy?"BUY":"SELL"}</span>
-                      <span className="deal-p">₹{d.price.toLocaleString("en-IN")}</span>
-                    </div>
-                    <div className="deal-meta">
-                      <span className="deal-prod">{d.name}</span>
-                      <span>{d.qty} MT · {d.loc}</span>
-                    </div>
-                    <div style={{fontSize:9,color:"rgba(255,255,255,0.2)",marginTop:2}}>{d.time}</div>
+                  <div style={{marginTop:10}}>
+                    <button className="btn-enquire" style={{fontSize:11,padding:"6px 12px",width:"100%"}} onClick={()=>{setModal("enquiry");setEnquiryProduct({name:p.name,price:`₹${p.price.toLocaleString("en-IN")}/MT`});}}>Get Quote</button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
           </div>
 
@@ -1100,19 +1040,17 @@ export default function KNBPlatform() {
           <div className="ex-full-table">
             <table className="ex-table">
               <thead><tr>
-                <th>Product</th><th>Open</th><th>High</th><th>Low</th><th>Current</th><th>Change</th><th>Volume</th><th>Action</th>
+                <th>Product</th><th>Grade</th><th>Calorific Value</th><th>Spot Price</th><th>MOQ</th><th>Action</th>
               </tr></thead>
               <tbody>
                 {prices.map((p,i) => (
                   <tr key={i}>
-                    <td><div className="td-name">{p.name}</div><div className="td-grade">{p.grade}</div></td>
-                    <td><span className="td-price">₹{p.open.toLocaleString("en-IN")}</span></td>
-                    <td><span style={{color:"#27ae60",fontFamily:"monospace",fontWeight:600}}>₹{p.high.toLocaleString("en-IN")}</span></td>
-                    <td><span style={{color:"#e74c3c",fontFamily:"monospace",fontWeight:600}}>₹{p.low.toLocaleString("en-IN")}</span></td>
-                    <td><span className="td-price" style={{fontWeight:700}}>₹{p.price.toLocaleString("en-IN")}</span></td>
-                    <td><span className={p.up?"td-up":"td-dn"}>{p.up?"+":""}{p.chg} ({p.up?"+":""}{p.pct}%)</span></td>
-                    <td><span className="td-vol">{p.vol} MT</span></td>
-                    <td><button className="btn-enquire" style={{fontSize:11.5,padding:"7px 14px"}} onClick={()=>{setModal("enquiry");setEnquiryProduct({name:p.name,price:`₹${p.price.toLocaleString("en-IN")}`});}}>Buy</button></td>
+                    <td><div className="td-name">{p.name}</div><div className="td-grade">{p.short}</div></td>
+                    <td><span className="td-grade">{p.grade}</span></td>
+                    <td><span style={{color:"var(--gold)",fontWeight:600}}>{p.cal} kcal/kg</span></td>
+                    <td><span className="td-price">₹{p.price.toLocaleString("en-IN")}/MT</span></td>
+                    <td><span className="td-vol">10 MT</span></td>
+                    <td><button className="btn-enquire" style={{fontSize:11.5,padding:"7px 14px"}} onClick={()=>{setModal("enquiry");setEnquiryProduct({name:p.name,price:`₹${p.price.toLocaleString("en-IN")}/MT`});}}>Get Quote</button></td>
                   </tr>
                 ))}
               </tbody>
