@@ -828,12 +828,15 @@ export default function KNBPlatform() {
   };
 
   const getOTPErr = (code) => ({
-    "auth/invalid-phone-number":      "Invalid phone number. Use 10-digit Indian number.",
+    "auth/invalid-phone-number":      "Invalid number. Please enter a valid 10-digit mobile number.",
     "auth/quota-exceeded":            "SMS limit reached. Please try after some time.",
-    "auth/invalid-verification-code": "Wrong OTP. Please check and try again.",
-    "auth/code-expired":              "OTP expired. Please request a new one.",
-    "auth/too-many-requests":         "Too many attempts. Please wait and try again.",
-  }[code] || "Something went wrong. Please try again.");
+    "auth/invalid-verification-code": "Wrong OTP. Please check the SMS and try again.",
+    "auth/code-expired":              "OTP expired. Please go back and request a new one.",
+    "auth/too-many-requests":         "Too many attempts. Please wait a few minutes and try again.",
+    "auth/unauthorized-domain":       "Domain not authorized. Ask admin to add site to Firebase.",
+    "auth/missing-phone-number":      "Please enter your mobile number.",
+    "auth/captcha-check-failed":      "Security check failed. Please refresh and try again.",
+  }[code] || `Error: ${code}. Please try again or call +91 99206 57193`);
 
   const setupRecaptcha = (containerId) => {
     if (window.recaptchaVerifier) {
@@ -866,10 +869,17 @@ export default function KNBPlatform() {
     try {
       const cred = await loginConfirm.confirm(loginOTP);
       const snap = await getDoc(doc(db, "users", cred.user.uid));
-      if (snap.exists()) setUserProfile(snap.data());
-      setModal(null);
-      setLoginPhone(""); setLoginOTP(""); setLoginOTPSent(false); setLoginConfirm(null);
-      showToast(snap.exists() ? `✓ Welcome back, ${snap.data().name?.split(" ")[0]}!` : "✓ Signed in!");
+      if (snap.exists()) {
+        setUserProfile(snap.data());
+        setModal(null);
+        setLoginPhone(""); setLoginOTP(""); setLoginOTPSent(false); setLoginConfirm(null);
+        showToast(`✓ Welcome back, ${snap.data().name?.split(" ")[0]}!`);
+      } else {
+        // Phone not registered — sign them out and ask to register
+        await signOut(auth);
+        setAuthErr("❌ This number is not registered. Please click 'New here? Register' to create an account.");
+        setLoginOTPSent(false); setLoginOTP("");
+      }
     } catch(e) { setAuthErr(getOTPErr(e.code)); }
     setAuthBusy(false);
   };
