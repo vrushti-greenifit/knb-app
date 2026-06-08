@@ -144,10 +144,12 @@ input, select, textarea { font-family: inherit; }
   background-size: cover;
   background-position: center;
   background-blend-mode: overlay;
-  padding: 80px clamp(20px, 4vw, 64px) 0;
+  padding: clamp(48px, 7vh, 90px) clamp(20px, 4vw, 64px) 0;
   position: relative; overflow: hidden;
-  min-height: 640px;
+  min-height: calc(100vh - 100px);
   width: 100%;
+  display: flex;
+  align-items: center;
 }
 .hero-texture {
   position: absolute; inset: 0; pointer-events: none; opacity: 0.03;
@@ -160,8 +162,8 @@ input, select, textarea { font-family: inherit; }
   background: radial-gradient(circle, rgba(46,107,53,0.18) 0%, transparent 60%);
   pointer-events: none;
 }
-.hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr clamp(320px, 35%, 420px); gap: clamp(32px, 5vw, 64px); align-items: end; width: 100%; }
-.hero-left { padding-bottom: 80px; }
+.hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr clamp(320px, 35%, 440px); gap: clamp(32px, 5vw, 64px); align-items: center; width: 100%; padding-bottom: clamp(48px, 6vh, 80px); }
+.hero-left { padding-bottom: 0; }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
   background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.25);
@@ -182,10 +184,10 @@ input, select, textarea { font-family: inherit; }
 .hero-trust { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
 .trust-item { display: flex; align-items: center; gap: 7px; color: rgba(255,255,255,0.45); font-size: 12.5px; }
 .trust-icon { font-size: 15px; }
-.hero-right { position: relative; }
+.hero-right { position: relative; align-self: center; }
 .hero-role-cards {
   background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
-  border-radius: var(--r-xl) var(--r-xl) 0 0; padding: 28px; margin-bottom: 0;
+  border-radius: var(--r-xl); padding: 28px; margin-bottom: 0;
 }
 .hero-role-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
 .role-cards-grid { display: flex; flex-direction: column; gap: 10px; }
