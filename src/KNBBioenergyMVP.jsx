@@ -134,6 +134,10 @@ input, select, textarea { font-family: inherit; }
 /* ── HERO ── */
 .hero {
   background: var(--soil);
+  background-image: url('https://images.unsplash.com/photo-1500382017468-9049fed747ef?w=1400&h=800&fit=crop&auto=format');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
   padding: 80px 48px 0;
   position: relative; overflow: hidden;
   min-height: 640px;
@@ -297,7 +301,13 @@ input, select, textarea { font-family: inherit; }
 .load-more { text-align: center; margin-top: 36px; }
 
 /* ── FARMER SECTION ── */
-.farmer-section { background: linear-gradient(135deg, #1a2e0a 0%, #0f1f08 100%); }
+.farmer-section {
+  background: linear-gradient(135deg, #1a2e0a 0%, #0f1f08 100%);
+  background-image: url('https://images.unsplash.com/photo-1464226184884-fa280b87c399?w=1400&h=700&fit=crop&auto=format');
+  background-size: cover;
+  background-position: center;
+  background-blend-mode: overlay;
+}
 .farmer-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 60px; align-items: center; }
 .farmer-text h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(28px,3.5vw,44px); font-weight: 800; color: white; line-height: 1.1; letter-spacing: -0.8px; margin-bottom: 16px; }
 .farmer-text h2 em { color: var(--harvest); font-style: normal; }
@@ -646,20 +656,20 @@ input, select, textarea { font-family: inherit; }
 /* ─── DATA ─────────────────────────────────────────────────── */
 const PRODUCTS = [
   // BRIQUETTES
-  { id:1, type:"Briquette", name:"Soyabean Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,400", moist:"6%", ash:"15-20%", density:"580 kg/m³", price:"5,200", moq:"10 MT", cert:true, carbon:"1.9" },
-  { id:2, type:"Briquette", name:"Groundnut Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"8-10%", density:"600 kg/m³", price:"5,800", moq:"10 MT", cert:true, carbon:"2.1" },
-  { id:3, type:"Briquette", name:"Mustard Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"6%", ash:"10-15%", density:"580 kg/m³", price:"5,400", moq:"10 MT", cert:true, carbon:"2.0" },
-  { id:4, type:"Briquette", name:"Rice Husk Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"8%", ash:"20%", density:"560 kg/m³", price:"4,800", moq:"15 MT", cert:true, carbon:"1.9" },
-  { id:5, type:"Briquette", name:"Sawdust Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"10%", density:"620 kg/m³", price:"6,500", moq:"5 MT", cert:true, carbon:"2.4" },
-  { id:6, type:"Briquette", name:"Agro Waste Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"7%", ash:"12-15%", density:"580 kg/m³", price:"5,600", moq:"10 MT", cert:true, carbon:"2.1" },
+  { id:1, type:"Briquette", name:"Soyabean Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,400", moist:"6%", ash:"15-20%", density:"580 kg/m³", price:"5,200", moq:"10 MT", cert:true, carbon:"1.9", img:"https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=500&h=200&fit=crop&auto=format" },
+  { id:2, type:"Briquette", name:"Groundnut Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"8-10%", density:"600 kg/m³", price:"5,800", moq:"10 MT", cert:true, carbon:"2.1", img:"https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=500&h=200&fit=crop&auto=format" },
+  { id:3, type:"Briquette", name:"Mustard Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"6%", ash:"10-15%", density:"580 kg/m³", price:"5,400", moq:"10 MT", cert:true, carbon:"2.0", img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=200&fit=crop&auto=format" },
+  { id:4, type:"Briquette", name:"Rice Husk Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"8%", ash:"20%", density:"560 kg/m³", price:"4,800", moq:"15 MT", cert:true, carbon:"1.9", img:"https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=500&h=200&fit=crop&auto=format" },
+  { id:5, type:"Briquette", name:"Sawdust Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"10%", density:"620 kg/m³", price:"6,500", moq:"5 MT", cert:true, carbon:"2.4", img:"https://images.unsplash.com/photo-1542621334-a254cf47733d?w=500&h=200&fit=crop&auto=format" },
+  { id:6, type:"Briquette", name:"Agro Waste Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"7%", ash:"12-15%", density:"580 kg/m³", price:"5,600", moq:"10 MT", cert:true, carbon:"2.1", img:"https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=500&h=200&fit=crop&auto=format" },
   // PELLETS
-  { id:7, type:"Pellet", name:"Soyabean Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,600", moist:"5%", ash:"5-6%", density:"640 kg/m³", price:"6,200", moq:"5 MT", cert:true, carbon:"2.0" },
-  { id:8, type:"Pellet", name:"Groundnut Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"6-8%", density:"650 kg/m³", price:"7,200", moq:"5 MT", cert:true, carbon:"2.3" },
-  { id:9, type:"Pellet", name:"Mustard Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"6-8%", density:"640 kg/m³", price:"6,800", moq:"5 MT", cert:true, carbon:"2.1" },
-  { id:10, type:"Pellet", name:"Rice Husk Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,700", moist:"5%", ash:"20%", density:"620 kg/m³", price:"6,000", moq:"10 MT", cert:true, carbon:"2.0" },
-  { id:11, type:"Pellet", name:"Sawdust Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"5-6%", density:"660 kg/m³", price:"7,800", moq:"5 MT", cert:true, carbon:"2.4" },
-  { id:12, type:"Pellet", name:"Agro Waste Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"7-8%", density:"645 kg/m³", price:"7,000", moq:"5 MT", cert:true, carbon:"2.3" },
-  { id:13, type:"Pellet", name:"Pinewood Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,300", moist:"5%", ash:"2-3%", density:"680 kg/m³", price:"9,500", moq:"2 MT", cert:true, carbon:"2.6" },
+  { id:7, type:"Pellet", name:"Soyabean Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,600", moist:"5%", ash:"5-6%", density:"640 kg/m³", price:"6,200", moq:"5 MT", cert:true, carbon:"2.0", img:"https://images.unsplash.com/photo-1574943320219-553eb213f72d?w=500&h=200&fit=crop&auto=format" },
+  { id:8, type:"Pellet", name:"Groundnut Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"6-8%", density:"650 kg/m³", price:"7,200", moq:"5 MT", cert:true, carbon:"2.3", img:"https://images.unsplash.com/photo-1601493700631-2b16ec4b4716?w=500&h=200&fit=crop&auto=format" },
+  { id:9, type:"Pellet", name:"Mustard Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"6-8%", density:"640 kg/m³", price:"6,800", moq:"5 MT", cert:true, carbon:"2.1", img:"https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=500&h=200&fit=crop&auto=format" },
+  { id:10, type:"Pellet", name:"Rice Husk Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,700", moist:"5%", ash:"20%", density:"620 kg/m³", price:"6,000", moq:"10 MT", cert:true, carbon:"2.0", img:"https://images.unsplash.com/photo-1536304929831-ee1ca9d44906?w=500&h=200&fit=crop&auto=format" },
+  { id:11, type:"Pellet", name:"Sawdust Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"5-6%", density:"660 kg/m³", price:"7,800", moq:"5 MT", cert:true, carbon:"2.4", img:"https://images.unsplash.com/photo-1542621334-a254cf47733d?w=500&h=200&fit=crop&auto=format" },
+  { id:12, type:"Pellet", name:"Agro Waste Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"7-8%", density:"645 kg/m³", price:"7,000", moq:"5 MT", cert:true, carbon:"2.3", img:"https://images.unsplash.com/photo-1500595046743-cd271d694d30?w=500&h=200&fit=crop&auto=format" },
+  { id:13, type:"Pellet", name:"Pinewood Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,300", moist:"5%", ash:"2-3%", density:"680 kg/m³", price:"9,500", moq:"2 MT", cert:true, carbon:"2.6", img:"https://images.unsplash.com/photo-1448375240586-882707db888b?w=500&h=200&fit=crop&auto=format" },
 ];
 
 const PRICE_DATA = [
@@ -905,7 +915,8 @@ export default function KNBPlatform() {
               <div className="mkt-grid">
                 {visibleProducts.map(p => (
                   <div key={p.id} className="prod-card">
-                    <div className="prod-card-top">
+                    {p.img && <img src={p.img} alt={p.name} style={{width:"100%",height:"160px",objectFit:"cover",display:"block"}} onError={e=>e.target.style.display="none"}/>}
+                    <div className="prod-card-top" style={{marginTop: p.img ? 12 : 0}}>
                       <span className={`prod-type-tag ${TAG_COLORS[p.type]||"tag-bio"}`}>{p.type}</span>
                       {p.cert && <span className="cert-badge">✓ Platform Assured</span>}
                     </div>
