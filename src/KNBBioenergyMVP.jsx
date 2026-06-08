@@ -645,25 +645,31 @@ input, select, textarea { font-family: inherit; }
 
 /* ─── DATA ─────────────────────────────────────────────────── */
 const PRODUCTS = [
-  { id:1, type:"Briquette", name:"Agro Biomass Briquettes", seller:"KNB Green Energy Ltd", loc:"Mumbai, MH", cal:"3,800", moist:"<8%", ash:"8.5%", density:"600 kg/m³", price:"6,200", moq:"10 MT", cert:true, carbon:"2.1" },
-  { id:2, type:"Pellet", name:"Premium Wood Pellets (ISO A1)", seller:"Himalayan Biomass Co.", loc:"Dehradun, UK", cal:"4,700", moist:"<5%", ash:"1.1%", density:"680 kg/m³", price:"11,200", moq:"2 MT", cert:true, carbon:"3.2" },
-  { id:3, type:"Raw Biomass", name:"Rice Husk — Bulk Supply", seller:"AgriPower Pvt Ltd", loc:"Nagpur, MH", cal:"3,200", moist:"<12%", ash:"14%", density:"—", price:"1,800", moq:"50 MT", cert:false, carbon:"1.9" },
-  { id:4, type:"Pellet", name:"Torrefied Agro Pellets", seller:"GreenFuel Industries", loc:"Pune, MH", cal:"4,400", moist:"<7%", ash:"3.2%", density:"640 kg/m³", price:"8,400", moq:"5 MT", cert:true, carbon:"2.8" },
-  { id:5, type:"Biochar", name:"Bamboo Biochar Granules", seller:"EcoChar Solutions", loc:"Bengaluru, KA", cal:"6,200", moist:"<4%", ash:"5.8%", density:"420 kg/m³", price:"18,500", moq:"1 MT", cert:true, carbon:"4.8" },
-  { id:6, type:"Briquette", name:"Sugarcane Bagasse Briquettes", seller:"Deccan Agro Energy", loc:"Kolhapur, MH", cal:"3,400", moist:"<9%", ash:"11%", density:"580 kg/m³", price:"5,100", moq:"15 MT", cert:true, carbon:"1.8" },
-  { id:7, type:"Raw Biomass", name:"Cotton Stalk Chips", seller:"Vidarbha Agri Biomass", loc:"Amravati, MH", cal:"3,600", moist:"<10%", ash:"6%", density:"—", price:"1,400", moq:"100 MT", cert:false, carbon:"2.0" },
-  { id:8, type:"Briquette", name:"Groundnut Shell Briquettes", seller:"Solapur BioFuel Co.", loc:"Solapur, MH", cal:"4,100", moist:"<8%", ash:"7%", density:"610 kg/m³", price:"6,800", moq:"8 MT", cert:true, carbon:"2.4" },
-  { id:9, type:"Pellet", name:"Municipal Biomass Pellets", seller:"CleanCity Energy", loc:"Surat, GJ", cal:"3,900", moist:"<10%", ash:"9%", density:"590 kg/m³", price:"7,200", moq:"10 MT", cert:false, carbon:"2.2" },
+  // BRIQUETTES
+  { id:1, type:"Briquette", name:"Soyabean Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,400", moist:"6%", ash:"15-20%", density:"580 kg/m³", price:"5,200", moq:"10 MT", cert:true, carbon:"1.9" },
+  { id:2, type:"Briquette", name:"Groundnut Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"8-10%", density:"600 kg/m³", price:"5,800", moq:"10 MT", cert:true, carbon:"2.1" },
+  { id:3, type:"Briquette", name:"Mustard Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"6%", ash:"10-15%", density:"580 kg/m³", price:"5,400", moq:"10 MT", cert:true, carbon:"2.0" },
+  { id:4, type:"Briquette", name:"Rice Husk Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"8%", ash:"20%", density:"560 kg/m³", price:"4,800", moq:"15 MT", cert:true, carbon:"1.9" },
+  { id:5, type:"Briquette", name:"Sawdust Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"10%", density:"620 kg/m³", price:"6,500", moq:"5 MT", cert:true, carbon:"2.4" },
+  { id:6, type:"Briquette", name:"Agro Waste Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"7%", ash:"12-15%", density:"580 kg/m³", price:"5,600", moq:"10 MT", cert:true, carbon:"2.1" },
+  // PELLETS
+  { id:7, type:"Pellet", name:"Soyabean Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,600", moist:"5%", ash:"5-6%", density:"640 kg/m³", price:"6,200", moq:"5 MT", cert:true, carbon:"2.0" },
+  { id:8, type:"Pellet", name:"Groundnut Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"6-8%", density:"650 kg/m³", price:"7,200", moq:"5 MT", cert:true, carbon:"2.3" },
+  { id:9, type:"Pellet", name:"Mustard Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"6-8%", density:"640 kg/m³", price:"6,800", moq:"5 MT", cert:true, carbon:"2.1" },
+  { id:10, type:"Pellet", name:"Rice Husk Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,700", moist:"5%", ash:"20%", density:"620 kg/m³", price:"6,000", moq:"10 MT", cert:true, carbon:"2.0" },
+  { id:11, type:"Pellet", name:"Sawdust Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"5-6%", density:"660 kg/m³", price:"7,800", moq:"5 MT", cert:true, carbon:"2.4" },
+  { id:12, type:"Pellet", name:"Agro Waste Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"7-8%", density:"645 kg/m³", price:"7,000", moq:"5 MT", cert:true, carbon:"2.3" },
+  { id:13, type:"Pellet", name:"Pinewood Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,300", moist:"5%", ash:"2-3%", density:"680 kg/m³", price:"9,500", moq:"2 MT", cert:true, carbon:"2.6" },
 ];
 
 const PRICE_DATA = [
-  { name:"Agro Biomass Briquettes", grade:"Grade A / Certified", price:"₹6,200", chg:"+₹80", pct:"+1.3%", up:true, vol:"240 MT", cal:"3,800", bars:[28,30,32,35,30,38,36,40,38,44,42,46] },
-  { name:"Wood Pellets ISO A1", grade:"Premium / Platform Assured", price:"₹11,200", chg:"+₹200", pct:"+1.8%", up:true, vol:"86 MT", cal:"4,700", bars:[38,40,38,44,46,44,50,52,54,56,58,60] },
-  { name:"Rice Husk Briquettes", grade:"Grade B / NABL Tested", price:"₹4,800", chg:"−₹50", pct:"−1.0%", up:false, vol:"410 MT", cal:"3,200", bars:[50,48,46,48,44,46,42,44,40,38,36,34] },
-  { name:"Sugarcane Bagasse", grade:"Grade A / NABL Tested", price:"₹5,100", chg:"+₹30", pct:"+0.6%", up:true, vol:"320 MT", cal:"3,400", bars:[28,30,29,32,30,34,32,35,33,37,35,38] },
-  { name:"Bamboo Biochar", grade:"Premium / Greenifit Verified", price:"₹18,500", chg:"+₹500", pct:"+2.8%", up:true, vol:"42 MT", cal:"6,200", bars:[20,22,24,26,28,30,32,34,36,38,40,42] },
-  { name:"Torrefied Pellets", grade:"Grade A+ / KNB Assured", price:"₹8,400", chg:"−₹100", pct:"−1.2%", up:false, vol:"158 MT", cal:"4,400", bars:[44,42,40,38,36,40,38,36,34,36,34,32] },
-  { name:"Cotton Stalk Chips (Raw)", grade:"Unprocessed / Lab Pending", price:"₹1,400", chg:"+₹20", pct:"+1.5%", up:true, vol:"620 MT", cal:"3,600", bars:[12,14,13,15,14,16,15,17,16,18,17,19] },
+  { name:"Sawdust Briquettes", grade:"Grade A+ / KNB Certified", price:"₹6,500", chg:"+₹80", pct:"+1.2%", up:true, vol:"180 MT", cal:"4,200", bars:[28,30,32,35,30,38,36,40,38,44,42,46] },
+  { name:"Pinewood Pellets", grade:"Premium / KNB Assured", price:"₹9,500", chg:"+₹200", pct:"+2.1%", up:true, vol:"95 MT", cal:"4,300", bars:[38,40,38,44,46,44,50,52,54,56,58,60] },
+  { name:"Groundnut Pellets", grade:"Grade A / KNB Certified", price:"₹7,200", chg:"+₹100", pct:"+1.4%", up:true, vol:"210 MT", cal:"4,000", bars:[30,32,31,34,32,36,34,37,35,39,37,40] },
+  { name:"Rice Husk Briquettes", grade:"Grade B / KNB Tested", price:"₹4,800", chg:"−₹50", pct:"−1.0%", up:false, vol:"410 MT", cal:"3,500", bars:[50,48,46,48,44,46,42,44,40,38,36,34] },
+  { name:"Groundnut Briquettes", grade:"Grade A / KNB Certified", price:"₹5,800", chg:"+₹60", pct:"+1.0%", up:true, vol:"320 MT", cal:"3,800", bars:[28,30,29,32,30,34,32,35,33,37,35,38] },
+  { name:"Sawdust Pellets", grade:"Grade A+ / KNB Assured", price:"₹7,800", chg:"−₹100", pct:"−1.3%", up:false, vol:"145 MT", cal:"4,200", bars:[44,42,40,38,36,40,38,36,34,36,34,32] },
+  { name:"Agro Waste Briquettes", grade:"Grade A / KNB Certified", price:"₹5,600", chg:"+₹40", pct:"+0.7%", up:true, vol:"280 MT", cal:"3,800", bars:[12,14,13,15,14,16,15,17,16,18,17,19] },
 ];
 
 const BIOMASS_TYPES = ["Rice Husk","Wheat Straw","Sugarcane Bagasse","Cotton Stalk","Coconut Shell","Bamboo","Groundnut Shell","Sawdust","Maize Cob","Other"];
@@ -751,7 +757,7 @@ export default function KNBPlatform() {
 
       {/* TOP BAR */}
       <div className="topbar">
-        🇮🇳 India's first integrated bioenergy B2B platform — <span>Now live</span> · 240+ verified suppliers · 22 states
+        🇮🇳 India's leading Biomass Briquette & Pellet manufacturer — <span>KNB Green Energy Ltd</span> · 300+ Tons/Day · Akola, Maharashtra
       </div>
 
       {/* NAV */}
@@ -1226,8 +1232,8 @@ export default function KNBPlatform() {
         <div className="footer-inner">
           <div className="footer-top">
             <div className="ft-brand">
-              <h3>🌿 KNB BioEnergy Platform</h3>
-              <p>India's first integrated bioenergy marketplace. Connecting farmers, manufacturers, and industrial buyers through quality-certified, carbon-intelligent transactions.</p>
+              <h3>🌿 KNB Green Energy Ltd</h3>
+              <p>India's leading manufacturer of Biomass Briquettes & Pellets. 300+ tons/day capacity. Made from 100% agricultural waste. Eco-friendly substitute to coal & furnace oil.</p>
               <div className="ft-badges">
                 {["NABL Partner","Greenifit Verified","Verra VCS","Gold Standard","CCTS Ready","BEE PAT"].map(b => <span key={b} className="ft-badge">{b}</span>)}
               </div>
@@ -1241,8 +1247,13 @@ export default function KNBPlatform() {
               {["I'm a Farmer","I'm a Supplier","I'm a Buyer","Certification Guide","Carbon Calculator","Help Center"].map(l => <div key={l} className="ft-link">{l}</div>)}
             </div>
             <div className="ft-col">
-              <h4>Company</h4>
-              {["About KNB","About JP Ventures","Press","Investors","Careers","Contact Us"].map(l => <div key={l} className="ft-link">{l}</div>)}
+              <h4>Contact Us</h4>
+              <div className="ft-link">📞 +91 99206 57193</div>
+              <div className="ft-link">📞 +91 9920 225395</div>
+              <div className="ft-link">✉️ knbgreenenergy@gmail.com</div>
+              <div className="ft-link">✉️ kinjal@knbgreenenergy.com</div>
+              <div className="ft-link">📍 Dahisar, Mumbai 400068</div>
+              <div className="ft-link">🏭 Gut No.33, Akola 444107</div>
             </div>
           </div>
           <div className="footer-bottom">
