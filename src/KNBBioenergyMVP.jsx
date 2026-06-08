@@ -761,6 +761,7 @@ export default function KNBPlatform() {
   const [mtQty, setMtQty] = useState(100);
   const [selectedHeroRole, setSelectedHeroRole] = useState(null);
   const [showAllProducts, setShowAllProducts] = useState(false);
+  const captchaRef = useRef(null);
   const [enquiryProduct, setEnquiryProduct] = useState(null);
 
   // ── Auth state ──
@@ -838,14 +839,19 @@ export default function KNBPlatform() {
     "auth/captcha-check-failed":      "Security check failed. Please refresh and try again.",
   }[code] || `Error: ${code}. Please try again or call +91 99206 57193`);
 
-  const setupRecaptcha = (containerId) => {
-    if (window.recaptchaVerifier) {
-      try { window.recaptchaVerifier.clear(); } catch(e) {}
+  const getOrCreateCaptcha = () => {
+    try {
+      if (captchaRef.current) {
+        try { captchaRef.current.clear(); } catch(e) {}
+      }
+      captchaRef.current = new RecaptchaVerifier(auth, "recaptcha-root", {
+        size: "invisible", callback: () => {}
+      });
+      return captchaRef.current;
+    } catch(e) {
+      console.error("reCAPTCHA error:", e);
+      throw e;
     }
-    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
-      size: "invisible", callback: () => {}
-    });
-    return window.recaptchaVerifier;
   };
 
   // Login: Send OTP
@@ -855,10 +861,14 @@ export default function KNBPlatform() {
     }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = setupRecaptcha("recaptcha-login");
+      const verifier = getOrCreateCaptcha();
       const result = await signInWithPhoneNumber(auth, fmtPhone(loginPhone), verifier);
       setLoginConfirm(result); setLoginOTPSent(true);
-    } catch(e) { setAuthErr(getOTPErr(e.code)); }
+    } catch(e) {
+      console.error("Login OTP error:", e.code, e.message);
+      setAuthErr(getOTPErr(e.code));
+      try { captchaRef.current?.clear(); captchaRef.current = null; } catch(err) {}
+    }
     setAuthBusy(false);
   };
 
@@ -890,10 +900,14 @@ export default function KNBPlatform() {
     if (!regPhone || regPhone.replace(/\D/g,"").length < 10) { setAuthErr("Please enter a valid 10-digit mobile number."); return; }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = setupRecaptcha("recaptcha-register");
+      const verifier = getOrCreateCaptcha();
       const result = await signInWithPhoneNumber(auth, fmtPhone(regPhone), verifier);
       setRegConfirm(result); setRegOTPSent(true); setRegStep(2);
-    } catch(e) { setAuthErr(getOTPErr(e.code)); }
+    } catch(e) {
+      console.error("Register OTP error:", e.code, e.message);
+      setAuthErr(getOTPErr(e.code));
+      try { captchaRef.current?.clear(); captchaRef.current = null; } catch(err) {}
+    }
     setAuthBusy(false);
   };
 
@@ -1574,7 +1588,6 @@ export default function KNBPlatform() {
                         style={{fontSize:18,letterSpacing:"1px"}}/>
                       <div style={{fontSize:11,color:"var(--text-muted)",marginTop:4}}>+91 added automatically · India numbers only</div>
                     </div>
-                    <div id="recaptcha-login"/>
                     {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
                     <div className="modal-footer">
                       <button className="btn-cancel" onClick={()=>{setModal("choose-role");setAuthErr("");}}>New here? Register →</button>
@@ -1692,7 +1705,6 @@ export default function KNBPlatform() {
                       <input placeholder="98765 43210" value={regPhone} onChange={e=>setRegPhone(e.target.value)} style={{fontSize:17,letterSpacing:"1px"}}/>
                       <div style={{fontSize:11,color:regRole==="farmer"?"rgba(255,255,255,0.35)":"var(--text-muted)",marginTop:4}}>+91 added automatically</div>
                     </div>
-                    <div id="recaptcha-register"/>
                     {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
                     <div className="modal-footer">
                       <button className="btn-cancel" style={regRole==="farmer"?{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}:{}} onClick={() => setModal(null)}>Cancel</button>
@@ -1784,6 +1796,8 @@ export default function KNBPlatform() {
       )}
 
       {toast && <div className="toast">{toast}</div>}
+      {/* reCAPTCHA container — must be in DOM at all times for Firebase Phone Auth */}
+      <div id="recaptcha-root" style={{position:"fixed",bottom:0,left:0,zIndex:9999}}/>
 
       {/* ── PRICE CHART MODAL ── */}
       {selectedPrice && (
