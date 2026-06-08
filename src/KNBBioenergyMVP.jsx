@@ -842,6 +842,24 @@ export default function KNBPlatform() {
     return unsub;
   }, []);
 
+  // ── reCAPTCHA: initialize ONCE on mount ──
+  useEffect(() => {
+    const init = async () => {
+      try {
+        if (captchaRef.current) return;
+        captchaRef.current = new RecaptchaVerifier(auth, "recaptcha-root", {
+          size: "invisible",
+          callback: () => {}
+        });
+        await captchaRef.current.render();
+      } catch(e) {
+        console.error("reCAPTCHA init:", e);
+        captchaRef.current = null;
+      }
+    };
+    init();
+  }, []);
+
   // ── OTP helper ──
   const fmtPhone = (p) => {
     const d = p.replace(/\D/g,"");
@@ -859,19 +877,21 @@ export default function KNBPlatform() {
     "auth/captcha-check-failed":      "Security check failed. Please refresh and try again.",
   }[code] || `Error: ${code}. Please try again or call +91 99206 57193`);
 
-  const getOrCreateCaptcha = () => {
-    try {
-      if (captchaRef.current) {
-        try { captchaRef.current.clear(); } catch(e) {}
-      }
+  // Get verifier — reuse existing, only recreate if cleared after error
+  const getVerifier = async () => {
+    if (!captchaRef.current) {
       captchaRef.current = new RecaptchaVerifier(auth, "recaptcha-root", {
-        size: "invisible", callback: () => {}
+        size: "invisible",
+        callback: () => {}
       });
-      return captchaRef.current;
-    } catch(e) {
-      console.error("reCAPTCHA error:", e);
-      throw e;
+      await captchaRef.current.render();
     }
+    return captchaRef.current;
+  };
+
+  const resetVerifier = () => {
+    try { captchaRef.current?.clear(); } catch(e) {}
+    captchaRef.current = null;
   };
 
   // Login: Send OTP
@@ -881,13 +901,13 @@ export default function KNBPlatform() {
     }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = getOrCreateCaptcha();
+      const verifier = await getVerifier();
       const result = await signInWithPhoneNumber(auth, fmtPhone(loginPhone), verifier);
       setLoginConfirm(result); setLoginOTPSent(true);
     } catch(e) {
       console.error("Login OTP error:", e.code, e.message);
       setAuthErr(getOTPErr(e.code));
-      try { captchaRef.current?.clear(); captchaRef.current = null; } catch(err) {}
+      resetVerifier();
     }
     setAuthBusy(false);
   };
@@ -920,13 +940,13 @@ export default function KNBPlatform() {
     if (!regPhone || regPhone.replace(/\D/g,"").length < 10) { setAuthErr("Please enter a valid 10-digit mobile number."); return; }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = getOrCreateCaptcha();
+      const verifier = await getVerifier();
       const result = await signInWithPhoneNumber(auth, fmtPhone(regPhone), verifier);
       setRegConfirm(result); setRegOTPSent(true); setRegStep(2);
     } catch(e) {
       console.error("Register OTP error:", e.code, e.message);
       setAuthErr(getOTPErr(e.code));
-      try { captchaRef.current?.clear(); captchaRef.current = null; } catch(err) {}
+      resetVerifier();
     }
     setAuthBusy(false);
   };
