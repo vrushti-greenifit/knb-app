@@ -7,13 +7,23 @@ import { getFirestore } from "firebase/firestore";
 //  Get it from: Firebase Console → Project Settings → Your Apps
 // ─────────────────────────────────────────────────────────────
 const firebaseConfig = {
-  apiKey: "PASTE_API_KEY_HERE",
-  authDomain: "PASTE_AUTH_DOMAIN_HERE",
-  projectId: "PASTE_PROJECT_ID_HERE",
-  storageBucket: "PASTE_STORAGE_BUCKET_HERE",
-  messagingSenderId: "PASTE_MESSAGING_SENDER_ID_HERE",
-  appId: "PASTE_APP_ID_HERE"
+
+  apiKey: "AIzaSyA2zLUCSrVgAFnvxFjocfEADRSrmq2SfIU",
+
+  authDomain: "knb-bioenergy.firebaseapp.com",
+
+  projectId: "knb-bioenergy",
+
+  storageBucket: "knb-bioenergy.firebasestorage.app",
+
+  messagingSenderId: "1040465583384",
+
+  appId: "1:1040465583384:web:438e0d68de71eaa6b1526d",
+
+  measurementId: "G-GP6K9RMQGQ"
+
 };
+
 
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
