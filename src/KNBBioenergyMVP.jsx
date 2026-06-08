@@ -953,65 +953,6 @@ export default function KNBPlatform() {
         </div>
       </section>
 
-      {/* FARMER SECTION */}
-      <section className="section farmer-section" id="farmers">
-        <div className="section-narrow">
-          <div className="farmer-grid">
-            <div className="farmer-text">
-              <div style={{display:"inline-flex",alignItems:"center",gap:8,background:"rgba(245,166,35,0.12)",border:"1px solid rgba(245,166,35,0.25)",color:"var(--harvest)",fontSize:11.5,fontWeight:700,letterSpacing:"1.5px",textTransform:"uppercase",padding:"5px 12px",borderRadius:20,marginBottom:24}}>
-                🌾 For Farmers
-              </div>
-              <h2>Turn Your <em>Agricultural Waste</em> Into Steady Income</h2>
-              <p>Rice husk, wheat straw, sugarcane bagasse, cotton stalk — your crop residue has real value. KNB connects you directly to manufacturers who need it, at fair prices, without middlemen.</p>
-              <div className="farmer-benefits">
-                {[
-                  ["💰","Direct & Fair Pricing","Get market-rate prices updated daily. No broker commissions."],
-                  ["📦","We Arrange Pickup","Our logistics partners collect from your farm. No transport headache."],
-                  ["📱","Simple Registration","Register in minutes. List your available biomass with quantity and location."],
-                  ["🌿","Carbon Bonus","Farmers who supply certified biomass earn a carbon participation bonus per MT."],
-                ].map(([icon,title,desc],i) => (
-                  <div key={i} className="farmer-benefit">
-                    <div className="fb-icon">{icon}</div>
-                    <div><div className="fb-title">{title}</div><div className="fb-desc">{desc}</div></div>
-                  </div>
-                ))}
-              </div>
-              <button className="btn-harvest btn-lg" onClick={() => openRegister("farmer")}>Register as Farmer →</button>
-            </div>
-            <div>
-              <div className="farmer-register-card">
-                <div className="frc-title">Quick Farmer Listing</div>
-                <div className="frc-sub">Tell us what you have — we'll find buyers</div>
-                <div className="form-row">
-                  <div className="fld"><label>Your Name</label><input placeholder="Full name"/></div>
-                  <div className="fld"><label>Mobile</label><input placeholder="+91 98765 43210"/></div>
-                </div>
-                <div className="fld"><label>Village / Taluka / District</label><input placeholder="e.g. Sinnar, Nashik, Maharashtra"/></div>
-                <div className="fld"><label>What biomass do you have?</label>
-                  <div className="biomass-picker">
-                    {BIOMASS_TYPES.map(b => (
-                      <div key={b} className={`biomass-opt ${selectedBiomass.includes(b)?"sel":""}`}
-                        onClick={() => setSelectedBiomass(prev => prev.includes(b) ? prev.filter(x=>x!==b) : [...prev,b])}>
-                        {b}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="form-row">
-                  <div className="fld"><label>Quantity (MT / Month)</label><input type="number" placeholder="e.g. 20"/></div>
-                  <div className="fld"><label>Available From</label><input type="month"/></div>
-                </div>
-                <button className="btn-harvest" style={{width:"100%",padding:"13px",fontSize:15,fontWeight:700,borderRadius:"var(--r-sm)",border:"none",fontFamily:"inherit"}}
-                  onClick={() => showToast("✓ Your listing has been submitted! We'll call you within 24 hours.")}>
-                  Submit Listing →
-                </button>
-                <div style={{textAlign:"center",marginTop:12,fontSize:12,color:"rgba(255,255,255,0.3)"}}>Free to list · No commission for farmers</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* PRICE EXCHANGE */}
       <section className="section exchange-section" id="exchange">
         <div className="section-narrow">
