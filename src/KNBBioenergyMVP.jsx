@@ -682,7 +682,7 @@ const PRICE_DATA = [
   { name:"Agro Waste Briquettes", grade:"Grade A / KNB Certified", price:"₹5,600", chg:"+₹40", pct:"+0.7%", up:true, vol:"280 MT", cal:"3,800", bars:[12,14,13,15,14,16,15,17,16,18,17,19] },
 ];
 
-const BIOMASS_TYPES = ["Rice Husk","Wheat Straw","Sugarcane Bagasse","Cotton Stalk","Coconut Shell","Bamboo","Groundnut Shell","Sawdust","Maize Cob","Other"];
+const BIOMASS_TYPES = ["Soyabean Husk","Rice","Corn Cob","Agro Waste Mix","Mustard","Sawdust","Groundnut","Other"];
 
 const TAG_COLORS = { Briquette:"tag-brq", Pellet:"tag-pel", "Raw Biomass":"tag-raw", Biochar:"tag-char" };
 
@@ -759,7 +759,7 @@ export default function KNBPlatform() {
     setModal("register");
   };
 
-  const TYPES = ["All","Briquette","Pellet","Raw Biomass","Biochar"];
+  const TYPES = ["All","Briquette","Pellet","Raw Biomass"];
 
   return (
     <>
@@ -827,7 +827,7 @@ export default function KNBPlatform() {
               <div className="hero-role-title">I want to join as</div>
               <div className="role-cards-grid">
                 {[
-                  { role:"farmer", icon:"🌾", label:"Farmer / Grower", sub:"I produce agricultural biomass & want to sell", color:"harvest" },
+                  { role:"farmer", icon:"🌾", label:"Farmer / Raw Material Producer", sub:"I produce agricultural biomass & want to sell", color:"harvest" },
                   { role:"supplier", icon:"🏭", label:"Supplier / Manufacturer", sub:"I produce briquettes, pellets or processed biomass", color:"green" },
                   { role:"buyer", icon:"🏗️", label:"Industrial Buyer", sub:"I need bulk biomass for my factory or plant", color:"blue" },
                 ].map(r => (
@@ -901,7 +901,7 @@ export default function KNBPlatform() {
             </div>
             <div className="filter-row">
               {TYPES.map(t => <div key={t} className={`chip ${typeFilter===t?"on":""}`} onClick={()=>setTypeFilter(t)}>{t}</div>)}
-              <div className={`chip ${certFilter?"on-harvest":""}`} onClick={()=>setCertFilter(!certFilter)}>🏅 Certified Only</div>
+              <div className={`chip ${certFilter?"on-harvest":""}`} onClick={()=>setCertFilter(!certFilter)}>🏅 KNB Assured</div>
             </div>
           </div>
           {filteredProducts.length === 0 ? (
@@ -918,11 +918,10 @@ export default function KNBPlatform() {
                     {p.img && <img src={p.img} alt={p.name} style={{width:"100%",height:"160px",objectFit:"cover",display:"block"}} onError={e=>e.target.style.display="none"}/>}
                     <div className="prod-card-top" style={{marginTop: p.img ? 12 : 0}}>
                       <span className={`prod-type-tag ${TAG_COLORS[p.type]||"tag-bio"}`}>{p.type}</span>
-                      {p.cert && <span className="cert-badge">✓ Platform Assured</span>}
+                      {p.cert && <span className="cert-badge">✓ KNB Assured</span>}
                     </div>
                     <div className="prod-body">
                       <div className="prod-name">{p.name}</div>
-                      <div className="prod-seller">📍 {p.seller} · {p.loc}</div>
                       <div className="prod-specs">
                         <div className="spec"><div className="spec-k">Calorific Value</div><div className="spec-v">{p.cal} kcal/kg</div></div>
                         <div className="spec"><div className="spec-k">Moisture</div><div className="spec-v">{p.moist}</div></div>
@@ -1106,7 +1105,6 @@ export default function KNBPlatform() {
               </div>
               <div className="cc-cta-row">
                 <button className="btn-carbon" onClick={() => { setModal("enquiry"); setEnquiryProduct({name:"Carbon Credit Registration",price:"—"}); }}>Get My Credits →</button>
-                <button className="btn-carbon-outline" onClick={() => showToast("Carbon audit methodology document sent to your email.")}>Download Methodology</button>
               </div>
             </div>
           </div>
@@ -1137,11 +1135,11 @@ export default function KNBPlatform() {
             </div>
             <div className="ft-col">
               <h4>Platform</h4>
-              {["Marketplace","Price Exchange","Certification","Carbon Credits","Forward Contracts","API"].map(l => <div key={l} className="ft-link">{l}</div>)}
+              {["Marketplace","Spot Exchange","Certification","Carbon Credits","Forward Contracts"].map(l => <div key={l} className="ft-link">{l}</div>)}
             </div>
             <div className="ft-col">
               <h4>For You</h4>
-              {["I'm a Farmer","I'm a Supplier","I'm a Buyer","Certification Guide","Carbon Calculator","Help Center"].map(l => <div key={l} className="ft-link">{l}</div>)}
+              {["I'm a Farmer / Raw Material Producer","I'm a Supplier","I'm an Industry Buyer","Certification Guide","Carbon Calculator","Help Center"].map(l => <div key={l} className="ft-link">{l}</div>)}
             </div>
             <div className="ft-col">
               <h4>Contact Us</h4>
@@ -1176,9 +1174,9 @@ export default function KNBPlatform() {
                 </div>
                 <div className="role-selector-btns">
                   {[
-                    {role:"farmer",icon:"🌾",label:"I'm a Farmer / Crop Producer",desc:"Sell agricultural residue & biomass directly to processors"},
+                    {role:"farmer",icon:"🌾",label:"I'm a Farmer / Raw Material Producer",desc:"Sell agricultural residue & biomass directly to processors"},
                     {role:"supplier",icon:"🏭",label:"I'm a Supplier / Manufacturer",desc:"List processed biomass products: briquettes, pellets, biochar"},
-                    {role:"buyer",icon:"🏗️",label:"I'm an Industrial Buyer",desc:"Source verified biomass fuel for my factory or plant"},
+                    {role:"buyer",icon:"🏗️",label:"I'm an Industry Buyer",desc:"Source verified biomass fuel for my factory or plant"},
                   ].map(r => (
                     <button key={r.role} className="role-sel-btn" onClick={() => openRegister(r.role)}>
                       <span className="rsb-icon">{r.icon}</span>
@@ -1213,7 +1211,6 @@ export default function KNBPlatform() {
                       <div className={`mf mf-dark`}><label>Mobile Number</label><input placeholder="+91 98765 43210"/></div>
                     </div>
                     <div className={`mf mf-dark`}><label>Village / District / State</label><input placeholder="e.g. Sinnar, Nashik, Maharashtra"/></div>
-                    <div className={`mf mf-dark`}><label>Land Holdings (Acres)</label><input type="number" placeholder="e.g. 12"/></div>
                     <div className="modal-footer">
                       <button className="btn-cancel" style={{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}} onClick={() => setModal(null)}>Back</button>
                       <button className="btn-submit harvest" onClick={() => setRegStep(2)}>Continue →</button>
@@ -1229,10 +1226,6 @@ export default function KNBPlatform() {
                             onClick={() => setSelectedBiomass(prev => prev.includes(b)?prev.filter(x=>x!==b):[...prev,b])}>{b}</div>
                         ))}
                       </div>
-                    </div>
-                    <div className="modal-row">
-                      <div className={`mf mf-dark`}><label>Quantity / Month (MT)</label><input type="number" placeholder="e.g. 20"/></div>
-                      <div className={`mf mf-dark`}><label>Available From</label><input type="month"/></div>
                     </div>
                     <div className="modal-footer">
                       <button className="btn-cancel" style={{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}} onClick={() => setRegStep(1)}>← Back</button>
