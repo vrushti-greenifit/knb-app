@@ -39,13 +39,15 @@ const CSS = `
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-html { scroll-behavior: smooth; }
+html { scroll-behavior: smooth; overflow-x: hidden; max-width: 100%; }
 body {
   font-family: 'Instrument Sans', sans-serif;
   background: var(--paper);
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  width: 100%;
+  max-width: 100vw;
 }
 button { cursor: pointer; font-family: inherit; }
 input, select, textarea { font-family: inherit; }
@@ -70,9 +72,10 @@ input, select, textarea { font-family: inherit; }
   background: rgba(253,249,243,0.97);
   backdrop-filter: blur(16px);
   border-bottom: 1px solid var(--border);
-  padding: 0 48px;
+  padding: 0 clamp(16px, 3.5vw, 48px);
   height: 64px;
   display: flex; align-items: center; justify-content: space-between;
+  width: 100%; max-width: 100%;
 }
 .nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
 .nav-logo-mark {
@@ -141,9 +144,10 @@ input, select, textarea { font-family: inherit; }
   background-size: cover;
   background-position: center;
   background-blend-mode: overlay;
-  padding: 80px 48px 0;
+  padding: 80px clamp(20px, 4vw, 64px) 0;
   position: relative; overflow: hidden;
   min-height: 640px;
+  width: 100%;
 }
 .hero-texture {
   position: absolute; inset: 0; pointer-events: none; opacity: 0.03;
@@ -156,7 +160,7 @@ input, select, textarea { font-family: inherit; }
   background: radial-gradient(circle, rgba(46,107,53,0.18) 0%, transparent 60%);
   pointer-events: none;
 }
-.hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr 420px; gap: 64px; align-items: end; }
+.hero-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: 1fr clamp(320px, 35%, 420px); gap: clamp(32px, 5vw, 64px); align-items: end; width: 100%; }
 .hero-left { padding-bottom: 80px; }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
@@ -210,8 +214,8 @@ input, select, textarea { font-family: inherit; }
 .role-tab.active-buyer { background: var(--sky); color: white; box-shadow: var(--shadow-sm); }
 
 /* ── SECTIONS ── */
-.section { padding: 80px 48px; }
-.section-narrow { max-width: 1100px; margin: 0 auto; }
+.section { padding: 80px clamp(20px, 4vw, 64px); width: 100%; }
+.section-narrow { max-width: 1100px; margin: 0 auto; width: 100%; }
 .section-header { margin-bottom: 48px; }
 .section-kicker { display: inline-flex; align-items: center; gap: 8px; color: var(--leaf); font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 12px; }
 .section-kicker::before { content: ''; display: block; width: 16px; height: 2px; background: var(--leaf); border-radius: 1px; }
@@ -374,8 +378,9 @@ input, select, textarea { font-family: inherit; }
 .spark-dn { background: rgba(231,76,60,0.35); }
 .ex-full-table {
   background: white; border-radius: var(--r-lg); border: 1px solid var(--border);
-  overflow: hidden; box-shadow: var(--shadow-sm);
+  overflow: hidden; box-shadow: var(--shadow-sm); width: 100%;
 }
+.ex-full-table-scroll { overflow-x: auto; width: 100%; }
 .ex-table { width: 100%; border-collapse: collapse; }
 .ex-table th { padding: 12px 18px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: var(--text-muted); text-align: left; border-bottom: 1px solid var(--border); background: var(--cream); }
 .ex-table td { padding: 14px 18px; border-bottom: 1px solid var(--border-light); font-size: 13.5px; }
@@ -436,8 +441,8 @@ input, select, textarea { font-family: inherit; }
 .gr-val { font-weight: 600; color: var(--soil); font-family: monospace; font-size: 12.5px; }
 
 /* ── CARBON ── */
-.carbon-section { background: var(--soil); }
-.carbon-inner { max-width: 1100px; margin: 0 auto; }
+.carbon-section { background: var(--soil); width: 100%; }
+.carbon-inner { max-width: 1100px; margin: 0 auto; width: 100%; }
 .carbon-intro { max-width: 640px; margin-bottom: 56px; }
 .carbon-intro h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(28px,3.5vw,44px); font-weight: 800; color: white; line-height: 1.1; letter-spacing: -0.8px; margin-bottom: 14px; }
 .carbon-intro h2 em { color: #6fcf97; font-style: normal; }
@@ -491,10 +496,10 @@ input, select, textarea { font-family: inherit; }
 .btn-carbon-outline:hover { border-color: rgba(255,255,255,0.35); color: white; }
 
 /* ── TRADING TERMINAL ── */
-.terminal-wrap { background:var(--bark); border-radius:var(--r-lg); overflow:hidden; border:1px solid rgba(255,255,255,0.07); margin-bottom:20px; }
+.terminal-wrap { background:var(--bark); border-radius:var(--r-lg); overflow:hidden; border:1px solid rgba(255,255,255,0.07); margin-bottom:20px; width:100%; }
 .terminal-header { background:rgba(0,0,0,0.35); padding:10px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); }
 .terminal-body { display:grid; grid-template-columns:1fr 260px; }
-.t-cards-grid { padding:14px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; border-right:1px solid rgba(255,255,255,0.05); }
+.t-cards-grid { padding:14px; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; border-right:1px solid rgba(255,255,255,0.05); }
 .t-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:var(--r-md); padding:12px; cursor:pointer; transition:all 0.15s; }
 .t-card:hover { background:rgba(255,255,255,0.08); }
 .t-card.up-card { border-top:2px solid #27ae60; }
@@ -533,8 +538,8 @@ input, select, textarea { font-family: inherit; }
 @media(max-width:900px){ .t-cards-grid{grid-template-columns:1fr 1fr;} .terminal-body{grid-template-columns:1fr;} }
 
 /* ── TRUST STRIP ── */
-.trust-strip { background: var(--leaf); padding: 56px 48px; }
-.trust-strip-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 32px; }
+.trust-strip { background: var(--leaf); padding: 56px clamp(20px, 4vw, 48px); width: 100%; }
+.trust-strip-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 32px; width: 100%; }
 .ts-item { text-align: center; }
 .ts-val { font-family: 'Bricolage Grotesque', sans-serif; font-size: 38px; font-weight: 800; color: white; line-height: 1; }
 .ts-val em { color: var(--harvest); font-style: normal; }
@@ -580,7 +585,8 @@ input, select, textarea { font-family: inherit; }
 /* ── CTA BOTTOM ── */
 .cta-bottom {
   background: linear-gradient(135deg, var(--soil) 0%, #1a2e15 100%);
-  padding: 100px 48px; text-align: center; position: relative; overflow: hidden;
+  padding: 100px clamp(20px, 4vw, 64px); text-align: center; position: relative; overflow: hidden;
+  width: 100%;
 }
 .cta-bottom::before {
   content: ''; position: absolute; top: -50%; left: -20%;
@@ -595,8 +601,8 @@ input, select, textarea { font-family: inherit; }
 .cta-note { font-size: 12px; color: rgba(255,255,255,0.3); }
 
 /* ── FOOTER ── */
-.footer { background: #0d0905; padding: 64px 48px 32px; }
-.footer-inner { max-width: 1100px; margin: 0 auto; }
+.footer { background: #0d0905; padding: 64px clamp(20px, 4vw, 48px) 32px; width: 100%; }
+.footer-inner { max-width: 1100px; margin: 0 auto; width: 100%; }
 .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
 .ft-brand { }
 .ft-brand h3 { font-family: 'Bricolage Grotesque', sans-serif; font-size: 20px; font-weight: 800; color: white; margin-bottom: 10px; }
@@ -679,20 +685,32 @@ input, select, textarea { font-family: inherit; }
 @keyframes toast-in { from{transform:translateY(14px);opacity:0} to{transform:translateY(0);opacity:1} }
 
 /* ── RESPONSIVE ── */
+
+/* Medium laptops: 1024px–1280px */
+@media(max-width: 1280px) {
+  .hero-inner { gap: clamp(24px, 4vw, 48px); }
+  .footer-top { grid-template-columns: 2fr 1fr 1fr; gap: 32px; }
+}
+
+@media(max-width: 1100px) {
+  .hero-inner { grid-template-columns: 1fr 340px; }
+  .footer-top { grid-template-columns: 1fr 1fr; gap: 24px; }
+}
+
 @media(max-width: 900px){
   .nav { padding: 0 20px; }
   .nav-center { display:none; }
-  .hero { padding: 60px 24px 0; }
+  .hero { padding: 60px 20px 0; }
   .hero-inner { grid-template-columns: 1fr; }
   .hero-right { display:none; }
-  .section { padding: 60px 24px; }
-  .trust-strip { padding: 40px 24px; }
+  .section { padding: 60px 20px; }
+  .trust-strip { padding: 40px 20px; }
   .trust-strip-inner { grid-template-columns: 1fr 1fr; gap: 20px; }
   .hiw-grid, .mkt-grid, .ex-grid, .grades-row, .cert-flow { grid-template-columns: 1fr; }
   .carbon-grid-new, .farmer-grid, .sup-grid { grid-template-columns: 1fr; }
   .footer-top { grid-template-columns: 1fr 1fr; gap: 28px; }
-  .cta-bottom { padding: 60px 24px; }
-  .footer { padding: 48px 24px 24px; }
+  .cta-bottom { padding: 60px 20px; }
+  .footer { padding: 48px 20px 24px; }
   .topbar { display:none; }
   .hero-trust { display:none; }
 }
@@ -1294,7 +1312,7 @@ export default function KNBPlatform() {
                 <div className="live-dot"/><span style={{fontSize:11,fontFamily:"monospace"}}>{liveTime}</span>
               </div>
             </div>
-            <div style={{padding:14,display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
+            <div style={{padding:14,display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:10}}>
               {prices.map(p => (
                 <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`} onClick={()=>setSelectedPrice(p)} style={{cursor:"pointer"}}>
                   <div className="t-short">{p.short}</div>
@@ -1316,6 +1334,7 @@ export default function KNBPlatform() {
 
           {/* Full Price Table */}
           <div className="ex-full-table">
+           <div className="ex-full-table-scroll">
             <table className="ex-table">
               <thead><tr>
                 <th>Product</th><th>Grade</th><th>Calorific Value</th><th>Spot Price</th><th>MOQ</th><th>Action</th>
@@ -1333,6 +1352,7 @@ export default function KNBPlatform() {
                 ))}
               </tbody>
             </table>
+           </div>
           </div>
         </div>
       </section>
