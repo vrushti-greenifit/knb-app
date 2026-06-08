@@ -868,7 +868,7 @@ export default function KNBPlatform() {
       {/* LIVE TICKER */}
       <div className="ticker-wrap">
         <div className="ticker-scroll">
-          {[...PRICE_DATA,...PRICE_DATA].map((p,i) => (
+          {[...INIT_PRICES,...INIT_PRICES].map((p,i) => (
             <div key={i} className="ticker-item">
               <span className="t-name">{p.name}</span>
               <span className="t-price">{p.price}/MT</span>
