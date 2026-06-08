@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "./firebase";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { signOut, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
 import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
@@ -769,16 +769,19 @@ export default function KNBPlatform() {
   const [authErr, setAuthErr] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
 
-  // ── Login form ──
-  const [loginEmail, setLoginEmail] = useState("");
-  const [loginPass, setLoginPass] = useState("");
+  // ── Login OTP ──
+  const [loginPhone, setLoginPhone] = useState("");
+  const [loginOTP, setLoginOTP] = useState("");
+  const [loginOTPSent, setLoginOTPSent] = useState(false);
+  const [loginConfirm, setLoginConfirm] = useState(null);
 
   // ── Register form (controlled inputs) ──
   const [regName, setRegName] = useState("");
   const [regCompany, setRegCompany] = useState("");
   const [regPhone, setRegPhone] = useState("");
-  const [regEmail, setRegEmail] = useState("");
-  const [regPass, setRegPass] = useState("");
+  const [regOTP, setRegOTP] = useState("");
+  const [regOTPSent, setRegOTPSent] = useState(false);
+  const [regConfirm, setRegConfirm] = useState(null);
   const [regIndustry, setRegIndustry] = useState("Textiles");
   const [regLocation, setRegLocation] = useState("");
   const [regRequirement, setRegRequirement] = useState("");
@@ -818,48 +821,90 @@ export default function KNBPlatform() {
     return unsub;
   }, []);
 
-  // ── Auth helper ──
-  const getAuthErrMsg = (code) => ({
-    "auth/user-not-found":      "No account found with this email.",
-    "auth/wrong-password":      "Incorrect password.",
-    "auth/invalid-credential":  "Incorrect email or password.",
-    "auth/email-already-in-use":"This email is already registered. Sign in instead.",
-    "auth/weak-password":       "Password must be at least 6 characters.",
-    "auth/invalid-email":       "Please enter a valid email address.",
-    "auth/too-many-requests":   "Too many attempts. Please try again later.",
+  // ── OTP helper ──
+  const fmtPhone = (p) => {
+    const d = p.replace(/\D/g,"");
+    return d.startsWith("91") && d.length===12 ? "+"+d : "+91"+d;
+  };
+
+  const getOTPErr = (code) => ({
+    "auth/invalid-phone-number":      "Invalid phone number. Use 10-digit Indian number.",
+    "auth/quota-exceeded":            "SMS limit reached. Please try after some time.",
+    "auth/invalid-verification-code": "Wrong OTP. Please check and try again.",
+    "auth/code-expired":              "OTP expired. Please request a new one.",
+    "auth/too-many-requests":         "Too many attempts. Please wait and try again.",
   }[code] || "Something went wrong. Please try again.");
 
-  const handleLogin = async () => {
-    if (!loginEmail || !loginPass) { setAuthErr("Please enter your email and password."); return; }
+  const setupRecaptcha = (containerId) => {
+    if (window.recaptchaVerifier) {
+      try { window.recaptchaVerifier.clear(); } catch(e) {}
+    }
+    window.recaptchaVerifier = new RecaptchaVerifier(auth, containerId, {
+      size: "invisible", callback: () => {}
+    });
+    return window.recaptchaVerifier;
+  };
+
+  // Login: Send OTP
+  const handleSendLoginOTP = async () => {
+    if (!loginPhone || loginPhone.replace(/\D/g,"").length < 10) {
+      setAuthErr("Please enter a valid 10-digit mobile number."); return;
+    }
     setAuthErr(""); setAuthBusy(true);
     try {
-      await signInWithEmailAndPassword(auth, loginEmail, loginPass);
-      setModal(null); setLoginEmail(""); setLoginPass("");
-      showToast("✓ Welcome back!");
-    } catch(e) { setAuthErr(getAuthErrMsg(e.code)); }
+      const verifier = setupRecaptcha("recaptcha-login");
+      const result = await signInWithPhoneNumber(auth, fmtPhone(loginPhone), verifier);
+      setLoginConfirm(result); setLoginOTPSent(true);
+    } catch(e) { setAuthErr(getOTPErr(e.code)); }
     setAuthBusy(false);
   };
 
-  const handleRegister = async () => {
-    if (!regName || !regEmail || !regPass || !regPhone) {
-      setAuthErr("Please fill all required fields (name, phone, email, password)."); return;
-    }
-    if (regPass.length < 6) { setAuthErr("Password must be at least 6 characters."); return; }
+  // Login: Verify OTP
+  const handleVerifyLoginOTP = async () => {
+    if (!loginOTP || loginOTP.length < 6) { setAuthErr("Please enter the 6-digit OTP."); return; }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const cred = await createUserWithEmailAndPassword(auth, regEmail, regPass);
+      const cred = await loginConfirm.confirm(loginOTP);
+      const snap = await getDoc(doc(db, "users", cred.user.uid));
+      if (snap.exists()) setUserProfile(snap.data());
+      setModal(null);
+      setLoginPhone(""); setLoginOTP(""); setLoginOTPSent(false); setLoginConfirm(null);
+      showToast(snap.exists() ? `✓ Welcome back, ${snap.data().name?.split(" ")[0]}!` : "✓ Signed in!");
+    } catch(e) { setAuthErr(getOTPErr(e.code)); }
+    setAuthBusy(false);
+  };
+
+  // Register: Send OTP
+  const handleSendRegOTP = async () => {
+    if (!regName) { setAuthErr("Please enter your name first."); return; }
+    if (!regPhone || regPhone.replace(/\D/g,"").length < 10) { setAuthErr("Please enter a valid 10-digit mobile number."); return; }
+    setAuthErr(""); setAuthBusy(true);
+    try {
+      const verifier = setupRecaptcha("recaptcha-register");
+      const result = await signInWithPhoneNumber(auth, fmtPhone(regPhone), verifier);
+      setRegConfirm(result); setRegOTPSent(true); setRegStep(2);
+    } catch(e) { setAuthErr(getOTPErr(e.code)); }
+    setAuthBusy(false);
+  };
+
+  // Register: Verify OTP + save profile
+  const handleRegisterVerifyOTP = async () => {
+    if (!regOTP || regOTP.length < 6) { setAuthErr("Please enter the 6-digit OTP."); return; }
+    setAuthErr(""); setAuthBusy(true);
+    try {
+      const cred = await regConfirm.confirm(regOTP);
       await setDoc(doc(db, "users", cred.user.uid), {
-        name: regName, company: regCompany, phone: regPhone,
-        email: regEmail, role: regRole,
-        industry: regIndustry, location: regLocation,
-        requirement: regRequirement, biomass: selectedBiomass,
-        createdAt: new Date().toISOString(),
+        name: regName, company: regCompany, phone: fmtPhone(regPhone),
+        role: regRole, industry: regIndustry,
+        location: regLocation, requirement: regRequirement,
+        biomass: selectedBiomass, createdAt: new Date().toISOString(),
       });
       setModal(null); setRegStep(1);
       setRegName(""); setRegCompany(""); setRegPhone("");
-      setRegEmail(""); setRegPass(""); setRegLocation(""); setRegRequirement("");
+      setRegOTP(""); setRegOTPSent(false); setRegConfirm(null);
+      setRegLocation(""); setRegRequirement("");
       showToast(`✓ Welcome to KNB, ${regName.split(" ")[0]}! Our team will be in touch.`);
-    } catch(e) { setAuthErr(getAuthErrMsg(e.code)); }
+    } catch(e) { setAuthErr(getOTPErr(e.code)); }
     setAuthBusy(false);
   };
 
@@ -1499,26 +1544,52 @@ export default function KNBPlatform() {
         <div className="overlay" onClick={e => e.target===e.currentTarget && (setModal(null), setRegStep(1), setAuthErr(""))}>
           <div className="modal-box" style={modal==="register" && regRole==="farmer" ? {background:"var(--bark)"} : {}}>
 
-            {/* ── LOGIN ── */}
+            {/* ── LOGIN (Mobile OTP) ── */}
             {modal === "login" && (
               <>
                 <div className="modal-hd">
-                  <div><div className="modal-title">Sign In</div><div className="modal-sub">Welcome back to KNB BioEnergy</div></div>
-                  <button className="modal-close" onClick={() => { setModal(null); setAuthErr(""); }}>×</button>
+                  <div>
+                    <div className="modal-title">Sign In</div>
+                    <div className="modal-sub">{loginOTPSent ? `OTP sent to ${fmtPhone(loginPhone)}` : "Enter your mobile number to receive OTP"}</div>
+                  </div>
+                  <button className="modal-close" onClick={() => { setModal(null); setAuthErr(""); setLoginOTPSent(false); setLoginPhone(""); setLoginOTP(""); }}>×</button>
                 </div>
-                <div className="mf"><label>Email Address</label>
-                  <input type="email" placeholder="you@company.com" value={loginEmail} onChange={e=>setLoginEmail(e.target.value)}/>
-                </div>
-                <div className="mf"><label>Password</label>
-                  <input type="password" placeholder="Your password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()}/>
-                </div>
-                {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
-                <div className="modal-footer">
-                  <button className="btn-cancel" onClick={() => { setModal("choose-role"); setAuthErr(""); }}>New here? Register →</button>
-                  <button className="btn-submit sky" onClick={handleLogin} disabled={authBusy}>
-                    {authBusy ? "Signing in…" : "Sign In →"}
-                  </button>
-                </div>
+
+                {!loginOTPSent ? (
+                  <>
+                    <div className="mf">
+                      <label>Mobile Number</label>
+                      <input placeholder="98765 43210" value={loginPhone} onChange={e=>setLoginPhone(e.target.value)}
+                        onKeyDown={e=>e.key==="Enter"&&handleSendLoginOTP()}
+                        style={{fontSize:18,letterSpacing:"1px"}}/>
+                      <div style={{fontSize:11,color:"var(--text-muted)",marginTop:4}}>+91 added automatically · India numbers only</div>
+                    </div>
+                    <div id="recaptcha-login"/>
+                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
+                    <div className="modal-footer">
+                      <button className="btn-cancel" onClick={()=>{setModal("choose-role");setAuthErr("");}}>New here? Register →</button>
+                      <button className="btn-submit sky" onClick={handleSendLoginOTP} disabled={authBusy}>{authBusy?"Sending OTP…":"Send OTP →"}</button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <div style={{background:"var(--mint)",border:"1px solid rgba(46,107,53,0.2)",borderRadius:8,padding:"10px 14px",fontSize:13,color:"var(--leaf)",marginBottom:16}}>
+                      ✓ OTP sent! Check your SMS messages.
+                    </div>
+                    <div className="mf">
+                      <label>Enter 6-digit OTP</label>
+                      <input placeholder="• • • • • •" maxLength={6} value={loginOTP}
+                        onChange={e=>setLoginOTP(e.target.value.replace(/\D/g,""))}
+                        onKeyDown={e=>e.key==="Enter"&&handleVerifyLoginOTP()}
+                        style={{fontSize:28,letterSpacing:"12px",textAlign:"center",fontWeight:700,fontFamily:"monospace"}}/>
+                    </div>
+                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
+                    <div className="modal-footer">
+                      <button className="btn-cancel" onClick={()=>{setLoginOTPSent(false);setLoginOTP("");setAuthErr("");}}>← Change Number</button>
+                      <button className="btn-submit sky" onClick={handleVerifyLoginOTP} disabled={authBusy}>{authBusy?"Verifying…":"Verify & Sign In →"}</button>
+                    </div>
+                  </>
+                )}
               </>
             )}
 
@@ -1564,99 +1635,86 @@ export default function KNBPlatform() {
                   {[1,2].map(s => <div key={s} className={`step-dot ${regStep>=s?"done":""}`}/>)}
                 </div>
 
-                {/* ─ Step 1: Common for all roles ─ */}
+                {/* ─ Step 1: Info + Send OTP ─ */}
                 {regStep === 1 && (
                   <div>
                     <div className="modal-row">
                       <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Full Name *</label>
                         <input placeholder="Your full name" value={regName} onChange={e=>setRegName(e.target.value)}/>
                       </div>
-                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Company / Organization</label>
-                        <input placeholder={regRole==="farmer"?"Village / Farm name":"Company name"} value={regCompany} onChange={e=>setRegCompany(e.target.value)}/>
+                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>{regRole==="farmer"?"Village / Farm":"Company Name"}</label>
+                        <input placeholder={regRole==="farmer"?"Village, District":"Company name"} value={regCompany} onChange={e=>setRegCompany(e.target.value)}/>
                       </div>
                     </div>
-                    <div className="modal-row">
-                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Mobile Number *</label>
-                        <input placeholder="+91 98765 43210" value={regPhone} onChange={e=>setRegPhone(e.target.value)}/>
+                    {regRole === "buyer" && (
+                      <div className="modal-row">
+                        <div className="mf"><label>Industry</label>
+                          <select value={regIndustry} onChange={e=>setRegIndustry(e.target.value)}>
+                            {["Textiles","Chemicals","Cement","Paper & Pulp","Food Processing","Ceramics","Pharma","Steel / Foundry","Other"].map(x=><option key={x}>{x}</option>)}
+                          </select>
+                        </div>
+                        <div className="mf"><label>Annual Requirement (MT)</label>
+                          <input type="number" placeholder="e.g. 2400" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
+                        </div>
                       </div>
-                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Business Email *</label>
-                        <input type="email" placeholder="you@company.com" value={regEmail} onChange={e=>setRegEmail(e.target.value)}/>
+                    )}
+                    {regRole === "supplier" && (
+                      <div className="modal-row">
+                        <div className="mf"><label>Monthly Capacity (MT)</label>
+                          <input type="number" placeholder="e.g. 500" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
+                        </div>
+                        <div className="mf"><label>Manufacturing Location</label>
+                          <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                        </div>
                       </div>
+                    )}
+                    {regRole === "farmer" && (
+                      <div className={`mf mf-dark`}><label>Available Biomass (select all)</label>
+                        <div className="biomass-picker" style={{marginTop:6}}>
+                          {BIOMASS_TYPES.map(b => (
+                            <div key={b} className={`biomass-opt ${selectedBiomass.includes(b)?"sel":""}`}
+                              onClick={() => setSelectedBiomass(prev => prev.includes(b)?prev.filter(x=>x!==b):[...prev,b])}>{b}</div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                    <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Mobile Number * (OTP will be sent)</label>
+                      <input placeholder="98765 43210" value={regPhone} onChange={e=>setRegPhone(e.target.value)} style={{fontSize:17,letterSpacing:"1px"}}/>
+                      <div style={{fontSize:11,color:regRole==="farmer"?"rgba(255,255,255,0.35)":"var(--text-muted)",marginTop:4}}>+91 added automatically</div>
                     </div>
-                    <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Create Password * (min 6 characters)</label>
-                      <input type="password" placeholder="Set a password for your account" value={regPass} onChange={e=>setRegPass(e.target.value)}/>
-                    </div>
+                    <div id="recaptcha-register"/>
                     {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
                     <div className="modal-footer">
                       <button className="btn-cancel" style={regRole==="farmer"?{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}:{}} onClick={() => setModal(null)}>Cancel</button>
                       <button className={`btn-submit ${regRole==="farmer"?"harvest":regRole==="buyer"?"sky":""}`}
-                        onClick={() => { if(!regName||!regEmail||!regPhone){setAuthErr("Please fill required fields.");return;} setAuthErr(""); setRegStep(2); }}>
-                        Continue →
+                        onClick={handleSendRegOTP} disabled={authBusy}>
+                        {authBusy ? "Sending OTP…" : "Send OTP →"}
                       </button>
                     </div>
                   </div>
                 )}
 
-                {/* ─ Step 2: Role-specific ─ */}
-                {regStep === 2 && regRole === "buyer" && (
+                {/* ─ Step 2: OTP Verification ─ */}
+                {regStep === 2 && (
                   <div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Industry *</label>
-                        <select value={regIndustry} onChange={e=>setRegIndustry(e.target.value)}>
-                          {["Textiles","Chemicals","Cement","Paper & Pulp","Food Processing","Ceramics","Pharma","Steel / Foundry","Other"].map(x=><option key={x}>{x}</option>)}
-                        </select>
-                      </div>
-                      <div className="mf"><label>Annual Requirement (MT)</label>
-                        <input type="number" placeholder="e.g. 2400" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
-                      </div>
+                    <div style={{background:"var(--mint)",border:"1px solid rgba(46,107,53,0.2)",borderRadius:8,padding:"10px 14px",fontSize:13,color:"var(--leaf)",marginBottom:20}}>
+                      ✓ OTP sent to +91 {regPhone} · Check your SMS
                     </div>
-                    <div className="mf"><label>Delivery Location</label>
-                      <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                    <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}>
+                      <label>Enter 6-digit OTP</label>
+                      <input placeholder="• • • • • •" maxLength={6} value={regOTP}
+                        onChange={e=>setRegOTP(e.target.value.replace(/\D/g,""))}
+                        onKeyDown={e=>e.key==="Enter"&&handleRegisterVerifyOTP()}
+                        style={{fontSize:28,letterSpacing:"12px",textAlign:"center",fontWeight:700,fontFamily:"monospace"}}/>
                     </div>
                     {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
                     <div className="modal-footer">
-                      <button className="btn-cancel" onClick={() => { setRegStep(1); setAuthErr(""); }}>← Back</button>
-                      <button className="btn-submit sky" onClick={handleRegister} disabled={authBusy}>{authBusy?"Creating account…":"Create Account →"}</button>
-                    </div>
-                  </div>
-                )}
-                {regStep === 2 && regRole === "supplier" && (
-                  <div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Product Type</label>
-                        <select><option>Biomass Briquettes</option><option>Wood Pellets</option><option>Agro Pellets</option><option>Biochar</option><option>Multiple</option></select>
-                      </div>
-                      <div className="mf"><label>Monthly Capacity (MT)</label>
-                        <input type="number" placeholder="e.g. 500" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
-                      </div>
-                    </div>
-                    <div className="mf"><label>Manufacturing Location</label>
-                      <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
-                    </div>
-                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
-                    <div className="modal-footer">
-                      <button className="btn-cancel" onClick={() => { setRegStep(1); setAuthErr(""); }}>← Back</button>
-                      <button className="btn-submit" onClick={handleRegister} disabled={authBusy}>{authBusy?"Creating account…":"Register & List →"}</button>
-                    </div>
-                  </div>
-                )}
-                {regStep === 2 && regRole === "farmer" && (
-                  <div>
-                    <div className={`mf mf-dark`}><label>Available Biomass (select all that apply)</label>
-                      <div className="biomass-picker" style={{marginTop:6}}>
-                        {BIOMASS_TYPES.map(b => (
-                          <div key={b} className={`biomass-opt ${selectedBiomass.includes(b)?"sel":""}`}
-                            onClick={() => setSelectedBiomass(prev => prev.includes(b)?prev.filter(x=>x!==b):[...prev,b])}>{b}</div>
-                        ))}
-                      </div>
-                    </div>
-                    <div className={`mf mf-dark`}><label>Village / District / State</label>
-                      <input placeholder="e.g. Sinnar, Nashik, Maharashtra" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
-                    </div>
-                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
-                    <div className="modal-footer">
-                      <button className="btn-cancel" style={{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}} onClick={() => { setRegStep(1); setAuthErr(""); }}>← Back</button>
-                      <button className="btn-submit harvest" onClick={handleRegister} disabled={authBusy}>{authBusy?"Creating account…":"Submit Registration →"}</button>
+                      <button className="btn-cancel" style={regRole==="farmer"?{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}:{}}
+                        onClick={() => { setRegStep(1); setRegOTP(""); setRegOTPSent(false); setAuthErr(""); }}>← Change Number</button>
+                      <button className={`btn-submit ${regRole==="farmer"?"harvest":regRole==="buyer"?"sky":""}`}
+                        onClick={handleRegisterVerifyOTP} disabled={authBusy}>
+                        {authBusy ? "Verifying…" : "Verify & Create Account →"}
+                      </button>
                     </div>
                   </div>
                 )}
