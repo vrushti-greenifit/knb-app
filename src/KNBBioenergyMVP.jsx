@@ -1052,61 +1052,6 @@ export default function KNBPlatform() {
         </div>
       </section>
 
-      {/* SUPPLIER SECTION */}
-      <section className="section supplier-section" id="suppliers">
-        <div className="section-narrow">
-          <div className="sup-grid">
-            <div>
-              <div className="section-kicker" style={{color:"var(--leaf)"}}>For Suppliers</div>
-              <div className="section-h2">Reach <em>1,800+ Industrial Buyers</em> Across India</div>
-              <div className="section-desc" style={{marginBottom:36}}>List your briquettes, pellets, and biomass products. Get quality-certified. Start receiving verified enquiries from industrial buyers today.</div>
-              <div className="sup-features">
-                {[
-                  ["sf-green","🏅","Quality Certification Support","We help you get NABL lab reports and the Platform Assured badge — increasing buyer trust and justifying premium pricing."],
-                  ["sf-gold","📊","Real-Time Price Benchmarking","See live market prices and set competitive rates. Know exactly where you stand in the market at all times."],
-                  ["sf-blue","🌿","Carbon Credit Revenue","Every MT sold generates carbon offset data. We handle the certification — you earn an additional ₹300–800/MT in carbon credit value."],
-                  ["sf-green","📦","Logistics Network Access","Connect with our logistics partners for last-mile delivery and fulfilment support at negotiated platform rates."],
-                ].map(([cls,icon,title,desc]) => (
-                  <div key={title} className="sup-feat">
-                    <div className={`sup-feat-icon ${cls}`}>{icon}</div>
-                    <div><div className="sup-feat-title">{title}</div><div className="sup-feat-desc">{desc}</div></div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="list-product-form">
-              <div className="lpf-title">List Your Product</div>
-              <div className="lpf-sub">Takes under 5 minutes · Free to start</div>
-              <div className="lf-row">
-                <div className="lf"><label>Company Name</label><input placeholder="Your company"/></div>
-                <div className="lf"><label>Contact Person</label><input placeholder="Full name"/></div>
-              </div>
-              <div className="lf-row">
-                <div className="lf">
-                  <label>Product Type</label>
-                  <select><option>Biomass Briquettes</option><option>Wood / Agro Pellets</option><option>Torrefied Biomass</option><option>Biochar</option><option>Raw Biomass</option></select>
-                </div>
-                <div className="lf"><label>Monthly Capacity (MT)</label><input type="number" placeholder="e.g. 500"/></div>
-              </div>
-              <div className="lf-row">
-                <div className="lf"><label>Calorific Value (kcal/kg)</label><input type="number" placeholder="e.g. 3800"/></div>
-                <div className="lf"><label>Asking Price (₹/MT)</label><input type="number" placeholder="e.g. 6200"/></div>
-              </div>
-              <div className="lf"><label>Plant Location</label><input placeholder="City, State"/></div>
-              <div className="lf"><label>Business Email</label><input type="email" placeholder="you@company.com"/></div>
-              <div className="upload-box" onClick={() => showToast("Lab report upload coming soon. Submit and we'll guide you through certification.")}>
-                <p>📄 <strong>Upload NABL Lab Report</strong> (optional but recommended)</p>
-                <p style={{marginTop:6,fontSize:12}}>PDF up to 5MB · Drag & drop or click to upload</p>
-              </div>
-              <button className="btn-primary" style={{width:"100%",padding:"14px",fontSize:15,fontWeight:700,borderRadius:"var(--r-sm)"}}
-                onClick={() => showToast("✓ Application submitted! We'll contact you within 24 hours.")}>
-                Submit Application →
-              </button>
-            </div>
-          </div>
-        </div>
-      </section>
-
       {/* CARBON CREDITS */}
       <section className="section carbon-section" id="carbon">
         <div className="carbon-inner">
