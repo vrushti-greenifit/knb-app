@@ -487,6 +487,48 @@ input, select, textarea { font-family: inherit; }
 }
 .btn-carbon-outline:hover { border-color: rgba(255,255,255,0.35); color: white; }
 
+/* ── TRADING TERMINAL ── */
+.terminal-wrap { background:var(--bark); border-radius:var(--r-lg); overflow:hidden; border:1px solid rgba(255,255,255,0.07); margin-bottom:20px; }
+.terminal-header { background:rgba(0,0,0,0.35); padding:10px 16px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.06); }
+.terminal-body { display:grid; grid-template-columns:1fr 260px; }
+.t-cards-grid { padding:14px; display:grid; grid-template-columns:repeat(4,1fr); gap:10px; border-right:1px solid rgba(255,255,255,0.05); }
+.t-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:var(--r-md); padding:12px; cursor:pointer; transition:all 0.15s; }
+.t-card:hover { background:rgba(255,255,255,0.08); }
+.t-card.up-card { border-top:2px solid #27ae60; }
+.t-card.dn-card { border-top:2px solid #e74c3c; }
+.t-short { font-family:monospace; font-size:10px; font-weight:700; color:rgba(255,255,255,0.35); letter-spacing:1.5px; margin-bottom:3px; }
+.t-name { font-size:11px; font-weight:600; color:rgba(255,255,255,0.75); margin-bottom:8px; line-height:1.3; }
+.t-price-big { font-family:'Bricolage Grotesque',monospace; font-size:20px; font-weight:800; margin-bottom:2px; }
+.t-green { color:#27ae60; } .t-red { color:#e74c3c; }
+.t-chg-row { font-size:10.5px; font-weight:600; margin-bottom:8px; }
+.t-ohlc { display:grid; grid-template-columns:1fr 1fr; gap:3px; margin-bottom:8px; }
+.t-ohlc-item { font-size:9.5px; }
+.t-ohlc-k { color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.5px; }
+.t-ohlc-v { color:rgba(255,255,255,0.7); font-family:monospace; font-weight:600; font-size:10px; }
+.t-bid-ask { display:flex; gap:5px; margin-bottom:6px; }
+.t-bid,.t-ask { flex:1; border-radius:4px; padding:4px 6px; text-align:center; }
+.t-bid { background:rgba(39,174,96,0.12); border:1px solid rgba(39,174,96,0.25); }
+.t-ask { background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); }
+.t-ba-lbl { font-size:8.5px; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.8px; }
+.t-ba-val { font-size:12px; font-weight:700; font-family:monospace; }
+.t-vol-row { font-size:9.5px; color:rgba(255,255,255,0.3); }
+/* Deal Feed */
+.deal-panel { padding:12px; overflow:hidden; }
+.deal-title { font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.deal-title::before { content:''; width:6px; height:6px; border-radius:50%; background:#4caf80; animation:pulse 1.2s infinite; }
+.deal-row { padding:6px 8px; border-radius:6px; margin-bottom:4px; animation:deal-in 0.35s ease; border-left:2px solid; }
+.deal-row.buy { background:rgba(39,174,96,0.09); border-color:#27ae60; }
+.deal-row.sell { background:rgba(231,76,60,0.09); border-color:#e74c3c; }
+.deal-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
+.deal-tag { font-size:8.5px; font-weight:700; padding:1px 5px; border-radius:3px; }
+.buy .deal-tag { background:rgba(39,174,96,0.25); color:#6fcf97; }
+.sell .deal-tag { background:rgba(231,76,60,0.25); color:#eb5757; }
+.deal-prod { font-size:11px; font-weight:700; color:rgba(255,255,255,0.85); font-family:monospace; }
+.deal-meta { font-size:10px; color:rgba(255,255,255,0.4); display:flex; justify-content:space-between; }
+.deal-p { font-family:monospace; font-weight:600; color:rgba(255,255,255,0.7); font-size:10.5px; }
+@keyframes deal-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
+@media(max-width:900px){ .t-cards-grid{grid-template-columns:1fr 1fr;} .terminal-body{grid-template-columns:1fr;} }
+
 /* ── TRUST STRIP ── */
 .trust-strip { background: var(--leaf); padding: 56px 48px; }
 .trust-strip-inner { max-width: 1100px; margin: 0 auto; display: grid; grid-template-columns: repeat(4,1fr); gap: 32px; }
@@ -672,14 +714,14 @@ const PRODUCTS = [
   { id:13, type:"Pellet", name:"Pinewood Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,300", moist:"5%", ash:"2-3%", density:"680 kg/m³", price:"9,500", moq:"2 MT", cert:true, carbon:"2.6", img:"/images/pinewood-pellet.jpg" },
 ];
 
-const PRICE_DATA = [
-  { name:"Sawdust Briquettes", grade:"Grade A+ / KNB Certified", price:"₹6,500", chg:"+₹80", pct:"+1.2%", up:true, vol:"180 MT", cal:"4,200", bars:[28,30,32,35,30,38,36,40,38,44,42,46] },
-  { name:"Pinewood Pellets", grade:"Premium / KNB Assured", price:"₹9,500", chg:"+₹200", pct:"+2.1%", up:true, vol:"95 MT", cal:"4,300", bars:[38,40,38,44,46,44,50,52,54,56,58,60] },
-  { name:"Groundnut Pellets", grade:"Grade A / KNB Certified", price:"₹7,200", chg:"+₹100", pct:"+1.4%", up:true, vol:"210 MT", cal:"4,000", bars:[30,32,31,34,32,36,34,37,35,39,37,40] },
-  { name:"Rice Husk Briquettes", grade:"Grade B / KNB Tested", price:"₹4,800", chg:"−₹50", pct:"−1.0%", up:false, vol:"410 MT", cal:"3,500", bars:[50,48,46,48,44,46,42,44,40,38,36,34] },
-  { name:"Groundnut Briquettes", grade:"Grade A / KNB Certified", price:"₹5,800", chg:"+₹60", pct:"+1.0%", up:true, vol:"320 MT", cal:"3,800", bars:[28,30,29,32,30,34,32,35,33,37,35,38] },
-  { name:"Sawdust Pellets", grade:"Grade A+ / KNB Assured", price:"₹7,800", chg:"−₹100", pct:"−1.3%", up:false, vol:"145 MT", cal:"4,200", bars:[44,42,40,38,36,40,38,36,34,36,34,32] },
-  { name:"Agro Waste Briquettes", grade:"Grade A / KNB Certified", price:"₹5,600", chg:"+₹40", pct:"+0.7%", up:true, vol:"280 MT", cal:"3,800", bars:[12,14,13,15,14,16,15,17,16,18,17,19] },
+const INIT_PRICES = [
+  { id:"SDBRQ", name:"Sawdust Briquettes",     short:"SD-BRQ", grade:"A+ · KNB Certified", price:6500, open:6420, high:6580, low:6380, vol:180, cal:"4,200" },
+  { id:"PNPEL", name:"Pinewood Pellets",        short:"PN-PEL", grade:"Premium · KNB Assured", price:9500, open:9300, high:9650, low:9250, vol:95,  cal:"4,300" },
+  { id:"GNPEL", name:"Groundnut Pellets",       short:"GN-PEL", grade:"A · KNB Certified",  price:7200, open:7100, high:7280, low:7050, vol:210, cal:"4,000" },
+  { id:"RHBRQ", name:"Rice Husk Briquettes",    short:"RH-BRQ", grade:"B · KNB Tested",     price:4800, open:4850, high:4900, low:4750, vol:410, cal:"3,500" },
+  { id:"GNBRQ", name:"Groundnut Briquettes",    short:"GN-BRQ", grade:"A · KNB Certified",  price:5800, open:5740, high:5860, low:5700, vol:320, cal:"3,800" },
+  { id:"SDPEL", name:"Sawdust Pellets",         short:"SD-PEL", grade:"A+ · KNB Assured",   price:7800, open:7900, high:7950, low:7780, vol:145, cal:"4,200" },
+  { id:"AWBRQ", name:"Agro Waste Briquettes",   short:"AW-BRQ", grade:"A · KNB Certified",  price:5600, open:5560, high:5640, low:5520, vol:280, cal:"3,800" },
 ];
 
 const BIOMASS_TYPES = ["Soyabean Husk","Rice","Corn Cob","Agro Waste Mix","Mustard","Sawdust","Groundnut","Other"];
@@ -694,7 +736,14 @@ export default function KNBPlatform() {
   const [searchQ, setSearchQ] = useState("");
   const [typeFilter, setTypeFilter] = useState("All");
   const [certFilter, setCertFilter] = useState(false);
-  const [prices, setPrices] = useState(PRICE_DATA);
+  const [prices, setPrices] = useState(() =>
+    INIT_PRICES.map(p => {
+      const chg = p.price - p.open;
+      return { ...p, up: chg >= 0, chg, pct: ((chg/p.open)*100).toFixed(2),
+        history: Array.from({length:60},(_,i)=>Math.round(p.open+(p.price-p.open)*(i/59)+(Math.random()-0.5)*80)) };
+    })
+  );
+  const [deals, setDeals] = useState([]);
   const [liveTime, setLiveTime] = useState(new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
   const [regRole, setRegRole] = useState("buyer");
   const [regStep, setRegStep] = useState(1);
@@ -704,15 +753,41 @@ export default function KNBPlatform() {
   const [selectedHeroRole, setSelectedHeroRole] = useState(null);
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [enquiryProduct, setEnquiryProduct] = useState(null);
+  const pricesRef = useRef([]);
+  useEffect(() => { pricesRef.current = prices; }, [prices]);
 
+  // Price updates every 1.2s
   useEffect(() => {
     const t = setInterval(() => {
       setLiveTime(new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
-      setPrices(prev => prev.map(p => ({
-        ...p,
-        bars: [...p.bars.slice(1), Math.max(5, p.bars[p.bars.length-1] + (Math.random()-0.48)*5)]
-      })));
-    }, 3200);
+      setPrices(prev => prev.map(p => {
+        const delta = (Math.random()-0.48)*p.price*0.003;
+        const np = Math.round(Math.max(p.open*0.92, p.price+delta));
+        const chg = np - p.open;
+        return { ...p, price:np, high:Math.max(p.high,np), low:Math.min(p.low,np),
+          up:delta>=0, chg, pct:((chg/p.open)*100).toFixed(2),
+          history:[...p.history.slice(-59), np] };
+      }));
+    }, 1200);
+    return () => clearInterval(t);
+  }, []);
+
+  // Deal feed every 1.8s
+  useEffect(() => {
+    const LOCS = ["Mumbai","Pune","Nagpur","Surat","Ahmedabad","Delhi","Chennai","Hyderabad","Kolkata","Indore"];
+    const t = setInterval(() => {
+      if (!pricesRef.current.length) return;
+      if (Math.random() > 0.3) {
+        const p = pricesRef.current[Math.floor(Math.random()*pricesRef.current.length)];
+        const qty = Math.ceil(Math.random()*8)*5;
+        setDeals(prev => [{
+          id: Date.now(), name:p.short, fullName:p.name,
+          price:p.price, qty, loc:LOCS[Math.floor(Math.random()*LOCS.length)],
+          buy:Math.random()>0.4,
+          time:new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"})
+        }, ...prev.slice(0,11)]);
+      }
+    }, 1800);
     return () => clearInterval(t);
   }, []);
 
@@ -952,58 +1027,92 @@ export default function KNBPlatform() {
         </div>
       </section>
 
-      {/* PRICE EXCHANGE */}
+      {/* SPOT EXCHANGE */}
       <section className="section exchange-section" id="exchange">
         <div className="section-narrow">
           <div className="ex-header">
             <div>
-              <div className="section-kicker">Price Discovery</div>
-              <div className="section-h2">Live <em>Market Prices</em></div>
-              <div className="section-desc">Benchmark prices updated in real-time from transactions on the platform.</div>
+              <div className="section-kicker">Spot Exchange</div>
+              <div className="section-h2">Live <em>Biomass Prices</em></div>
+              <div className="section-desc">Prices update with every transaction. Bid & Ask refresh every 1.2 seconds.</div>
             </div>
             <div className="live-pill"><div className="live-dot"/>Live · {liveTime}</div>
           </div>
-          <div className="ex-grid">
-            {prices.slice(0,3).map((p,i) => (
-              <div key={i} className="ex-card">
-                <div className="ex-card-top">
-                  <div>
-                    <div className="ex-name">{p.name}</div>
-                    <div className="ex-grade-tag">{p.grade}</div>
-                  </div>
-                </div>
-                <div className="ex-price-row">
-                  <div className="ex-price">{p.price}</div>
-                  <div className="ex-unit">/MT</div>
-                  <div className={p.up?"ex-chg-up":"ex-chg-dn"}>{p.chg}</div>
-                </div>
-                <div className="ex-meta">
-                  <div className="ex-meta-item">Vol: <strong>{p.vol}</strong></div>
-                  <div className="ex-meta-item">Cal: <strong style={{color:"var(--gold)"}}>{p.cal} kcal/kg</strong></div>
-                </div>
-                <div className="ex-sparkline">
-                  {p.bars.map((b,j) => {
-                    const h = Math.max(3, Math.min(28,(b/65)*28));
-                    return <div key={j} className={`spark-bar ${p.up?"spark-up":"spark-dn"}`} style={{height:`${h}px`}}/>;
-                  })}
-                </div>
+
+          {/* Trading Terminal */}
+          <div className="terminal-wrap">
+            <div className="terminal-header">
+              <div style={{display:"flex",gap:14,alignItems:"center"}}>
+                <span style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.45)",letterSpacing:"1.5px",textTransform:"uppercase"}}>KNB Spot Exchange</span>
+                <span style={{fontSize:10,color:"rgba(255,255,255,0.2)"}}>|</span>
+                <span style={{fontSize:10,color:"rgba(255,255,255,0.3)"}}>Auto-refresh: 1.2s</span>
               </div>
-            ))}
+              <div className="live-pill" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.07)"}}>
+                <div className="live-dot"/><span style={{fontSize:11,fontFamily:"monospace"}}>{liveTime}</span>
+              </div>
+            </div>
+            <div className="terminal-body">
+              {/* Price Cards */}
+              <div className="t-cards-grid">
+                {prices.map(p => (
+                  <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`}>
+                    <div className="t-short">{p.short}</div>
+                    <div className="t-name">{p.name}</div>
+                    <div className={`t-price-big ${p.up?"t-green":"t-red"}`}>₹{p.price.toLocaleString("en-IN")}</div>
+                    <div className={`t-chg-row ${p.up?"t-green":"t-red"}`}>{p.up?"▲":"▼"} {p.up?"+":""}{p.chg} ({p.up?"+":""}{p.pct}%)</div>
+                    <MiniChart history={p.history} up={p.up}/>
+                    <div className="t-ohlc">
+                      <div className="t-ohlc-item"><div className="t-ohlc-k">Open</div><div className="t-ohlc-v">₹{p.open.toLocaleString("en-IN")}</div></div>
+                      <div className="t-ohlc-item"><div className="t-ohlc-k">High</div><div className="t-ohlc-v" style={{color:"#27ae60"}}>₹{p.high.toLocaleString("en-IN")}</div></div>
+                      <div className="t-ohlc-item"><div className="t-ohlc-k">Low</div><div className="t-ohlc-v" style={{color:"#e74c3c"}}>₹{p.low.toLocaleString("en-IN")}</div></div>
+                      <div className="t-ohlc-item"><div className="t-ohlc-k">Cal</div><div className="t-ohlc-v">{p.cal}</div></div>
+                    </div>
+                    <div className="t-bid-ask">
+                      <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(p.price-Math.round(p.price*0.001)).toLocaleString("en-IN")}</div></div>
+                      <div className="t-ask"><div className="t-ba-lbl">Ask</div><div className="t-ba-val t-red">₹{(p.price+Math.round(p.price*0.001)).toLocaleString("en-IN")}</div></div>
+                    </div>
+                    <div className="t-vol-row">Vol: {p.vol} MT today</div>
+                  </div>
+                ))}
+              </div>
+              {/* Live Deal Feed */}
+              <div className="deal-panel">
+                <div className="deal-title">Live Deals</div>
+                {deals.length === 0 && <div style={{fontSize:11,color:"rgba(255,255,255,0.2)",textAlign:"center",marginTop:20}}>Waiting for deals…</div>}
+                {deals.map(d => (
+                  <div key={d.id} className={`deal-row ${d.buy?"buy":"sell"}`}>
+                    <div className="deal-top">
+                      <span className="deal-tag">{d.buy?"BUY":"SELL"}</span>
+                      <span className="deal-p">₹{d.price.toLocaleString("en-IN")}</span>
+                    </div>
+                    <div className="deal-meta">
+                      <span className="deal-prod">{d.name}</span>
+                      <span>{d.qty} MT · {d.loc}</span>
+                    </div>
+                    <div style={{fontSize:9,color:"rgba(255,255,255,0.2)",marginTop:2}}>{d.time}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </div>
+
+          {/* Full Price Table */}
           <div className="ex-full-table">
             <table className="ex-table">
               <thead><tr>
-                <th>Product</th><th>Spot Price</th><th>Change</th><th>Volume</th><th>Calorific Value</th><th>Action</th>
+                <th>Product</th><th>Open</th><th>High</th><th>Low</th><th>Current</th><th>Change</th><th>Volume</th><th>Action</th>
               </tr></thead>
               <tbody>
                 {prices.map((p,i) => (
                   <tr key={i}>
                     <td><div className="td-name">{p.name}</div><div className="td-grade">{p.grade}</div></td>
-                    <td><span className="td-price">{p.price}/MT</span></td>
-                    <td><span className={p.up?"td-up":"td-dn"}>{p.chg} ({p.pct})</span></td>
-                    <td><span className="td-vol">{p.vol}</span></td>
-                    <td><span className="td-cal">{p.cal} kcal/kg</span></td>
-                    <td><button className="btn-enquire" style={{fontSize:11.5,padding:"7px 14px"}} onClick={() => { setModal("enquiry"); setEnquiryProduct({name:p.name,price:p.price}); }}>Buy</button></td>
+                    <td><span className="td-price">₹{p.open.toLocaleString("en-IN")}</span></td>
+                    <td><span style={{color:"#27ae60",fontFamily:"monospace",fontWeight:600}}>₹{p.high.toLocaleString("en-IN")}</span></td>
+                    <td><span style={{color:"#e74c3c",fontFamily:"monospace",fontWeight:600}}>₹{p.low.toLocaleString("en-IN")}</span></td>
+                    <td><span className="td-price" style={{fontWeight:700}}>₹{p.price.toLocaleString("en-IN")}</span></td>
+                    <td><span className={p.up?"td-up":"td-dn"}>{p.up?"+":""}{p.chg} ({p.up?"+":""}{p.pct}%)</span></td>
+                    <td><span className="td-vol">{p.vol} MT</span></td>
+                    <td><button className="btn-enquire" style={{fontSize:11.5,padding:"7px 14px"}} onClick={()=>{setModal("enquiry");setEnquiryProduct({name:p.name,price:`₹${p.price.toLocaleString("en-IN")}`});}}>Buy</button></td>
                   </tr>
                 ))}
               </tbody>
@@ -1350,6 +1459,35 @@ export default function KNBPlatform() {
 
       {toast && <div className="toast">{toast}</div>}
     </>
+  );
+}
+
+/* ─── MINI CHART COMPONENT ─────────────────────────────────── */
+function MiniChart({ history, up, width=200, height=44 }) {
+  if (!history || history.length < 2) return <div style={{height:44}}/>;
+  const min = Math.min(...history);
+  const max = Math.max(...history);
+  const range = max - min || 1;
+  const pts = history.map((v, i) => [
+    (i / (history.length - 1)) * width,
+    height - ((v - min) / range) * (height - 4) - 2
+  ]);
+  const pathD = pts.map((p, i) => `${i === 0 ? 'M' : 'L'}${p[0].toFixed(1)},${p[1].toFixed(1)}`).join(' ');
+  const areaD = `${pathD} L${width},${height} L0,${height} Z`;
+  const color = up ? '#27ae60' : '#e74c3c';
+  const gradId = `grad-${up ? 'up' : 'dn'}`;
+  return (
+    <svg width="100%" height={height} viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" style={{display:'block',marginBottom:8}}>
+      <defs>
+        <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.25"/>
+          <stop offset="100%" stopColor={color} stopOpacity="0.02"/>
+        </linearGradient>
+      </defs>
+      <path d={areaD} fill={`url(#${gradId})`}/>
+      <path d={pathD} fill="none" stroke={color} strokeWidth="1.5" strokeLinejoin="round"/>
+      <circle cx={pts[pts.length-1][0]} cy={pts[pts.length-1][1]} r="3" fill={color}/>
+    </svg>
   );
 }
 
