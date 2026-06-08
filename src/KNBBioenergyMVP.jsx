@@ -739,9 +739,17 @@ export default function KNBPlatform() {
   const [prices] = useState(() =>
     INIT_PRICES.map(p => {
       const chg = p.price - p.open;
-      return { ...p, up: chg >= 0, chg, pct: ((chg/p.open)*100).toFixed(2) };
+      // Deterministic history using sin waves — stable shape, no random flicker
+      const history = Array.from({length:60}, (_,i) => {
+        const progress = i / 59;
+        const base = p.open + (p.price - p.open) * progress;
+        const wave = Math.sin(i * 0.6) * p.price * 0.007 + Math.sin(i * 1.4 + 1) * p.price * 0.004;
+        return Math.round(base + wave);
+      });
+      return { ...p, up: chg >= 0, chg, pct: ((chg/p.open)*100).toFixed(2), history };
     })
   );
+  const [selectedPrice, setSelectedPrice] = useState(null);
   const [liveTime, setLiveTime] = useState(new Date().toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit",second:"2-digit"}));
   const [regRole, setRegRole] = useState("buyer");
   const [regStep, setRegStep] = useState(1);
@@ -1020,17 +1028,19 @@ export default function KNBPlatform() {
             </div>
             <div style={{padding:14,display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:10}}>
               {prices.map(p => (
-                <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`}>
+                <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`} onClick={()=>setSelectedPrice(p)} style={{cursor:"pointer"}}>
                   <div className="t-short">{p.short}</div>
                   <div className="t-name">{p.name}</div>
                   <div className="t-price-big" style={{color:"#f5a623"}}>₹{p.price.toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"rgba(255,255,255,0.4)"}}>/MT</span></div>
-                  <div className="t-ohlc" style={{marginTop:10}}>
+                  <div className="t-ohlc" style={{marginTop:8}}>
                     <div className="t-ohlc-item"><div className="t-ohlc-k">Cal. Value</div><div className="t-ohlc-v">{p.cal} kcal/kg</div></div>
                     <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"#f5a623"}}>{p.grade.split("·")[0].trim()}</div></div>
                   </div>
-                  <div style={{marginTop:10}}>
-                    <button className="btn-enquire" style={{fontSize:11,padding:"6px 12px",width:"100%"}} onClick={()=>{setModal("enquiry");setEnquiryProduct({name:p.name,price:`₹${p.price.toLocaleString("en-IN")}/MT`});}}>Get Quote</button>
+                  <div className="t-bid-ask" style={{marginTop:10}}>
+                    <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(p.price-Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
+                    <div className="t-ask"><div className="t-ba-lbl">Ask</div><div className="t-ba-val t-red">₹{(p.price+Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
                   </div>
+                  <div className="t-vol-row" style={{marginTop:6,textAlign:"center",color:"rgba(255,255,255,0.2)"}}>Tap to view chart ↗</div>
                 </div>
               ))}
             </div>
@@ -1396,6 +1406,74 @@ export default function KNBPlatform() {
       )}
 
       {toast && <div className="toast">{toast}</div>}
+
+      {/* ── PRICE CHART MODAL ── */}
+      {selectedPrice && (
+        <div onClick={()=>setSelectedPrice(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#2d1f12",border:"1px solid rgba(255,255,255,0.1)",borderRadius:18,padding:28,maxWidth:680,width:"100%",maxHeight:"92vh",overflowY:"auto"}}>
+
+            {/* Header */}
+            <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
+              <div>
+                <div style={{fontFamily:"monospace",fontSize:10,color:"rgba(255,255,255,0.3)",letterSpacing:"2px",marginBottom:4}}>{selectedPrice.short} · {selectedPrice.grade}</div>
+                <div style={{fontSize:22,fontWeight:700,color:"white",lineHeight:1.2}}>{selectedPrice.name}</div>
+              </div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:30,fontWeight:800,fontFamily:"'Bricolage Grotesque',sans-serif",color:"#f5a623",lineHeight:1}}>₹{selectedPrice.price.toLocaleString("en-IN")}</div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.35)",marginTop:2}}>per Metric Tonne</div>
+              </div>
+            </div>
+
+            {/* Chart */}
+            <div style={{background:"rgba(0,0,0,0.35)",borderRadius:10,padding:"14px 14px 8px",marginBottom:16}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:10}}>
+                <span style={{fontSize:10,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"1.2px"}}>Price History</span>
+                <span style={{fontSize:10,color:"rgba(255,255,255,0.2)",fontStyle:"italic"}}>Live data coming soon · Indicative only</span>
+              </div>
+              <MiniChart history={selectedPrice.history} up={selectedPrice.up} width={600} height={130}/>
+              <div style={{display:"flex",justifyContent:"space-between",fontSize:9,color:"rgba(255,255,255,0.18)",marginTop:6,paddingTop:6,borderTop:"1px solid rgba(255,255,255,0.04)"}}>
+                <span>60 min ago</span><span>45 min ago</span><span>30 min ago</span><span>15 min ago</span><span>Now</span>
+              </div>
+            </div>
+
+            {/* OHLC Grid */}
+            <div style={{display:"grid",gridTemplateColumns:"repeat(4,1fr)",gap:8,marginBottom:16}}>
+              {[["Open","₹"+selectedPrice.open.toLocaleString("en-IN"),null],
+                ["High","₹"+selectedPrice.high.toLocaleString("en-IN"),"#27ae60"],
+                ["Low","₹"+selectedPrice.low.toLocaleString("en-IN"),"#e74c3c"],
+                ["Cal. Value",selectedPrice.cal+" kcal/kg","#f5a623"]
+              ].map(([k,v,c])=>(
+                <div key={k} style={{background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 12px"}}>
+                  <div style={{fontSize:9,color:"rgba(255,255,255,0.28)",textTransform:"uppercase",letterSpacing:"0.8px",marginBottom:5}}>{k}</div>
+                  <div style={{fontSize:13,fontWeight:700,fontFamily:"monospace",color:c||"rgba(255,255,255,0.75)"}}>{v}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bid / Ask */}
+            <div style={{display:"flex",gap:8,marginBottom:18}}>
+              <div style={{flex:1,background:"rgba(39,174,96,0.1)",border:"1px solid rgba(39,174,96,0.25)",borderRadius:10,padding:"12px 16px",textAlign:"center"}}>
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}}>Bid Price</div>
+                <div style={{fontSize:20,fontWeight:700,color:"#27ae60",fontFamily:"monospace"}}>₹{(selectedPrice.price-Math.round(selectedPrice.price*0.002)).toLocaleString("en-IN")}</div>
+              </div>
+              <div style={{flex:1,background:"rgba(231,76,60,0.1)",border:"1px solid rgba(231,76,60,0.25)",borderRadius:10,padding:"12px 16px",textAlign:"center"}}>
+                <div style={{fontSize:9,color:"rgba(255,255,255,0.3)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}}>Ask Price</div>
+                <div style={{fontSize:20,fontWeight:700,color:"#e74c3c",fontFamily:"monospace"}}>₹{(selectedPrice.price+Math.round(selectedPrice.price*0.002)).toLocaleString("en-IN")}</div>
+              </div>
+            </div>
+
+            {/* Actions */}
+            <div style={{display:"flex",gap:10}}>
+              <button className="btn-enquire" style={{flex:1,padding:"13px",fontSize:14}} onClick={()=>{setSelectedPrice(null);setModal("enquiry");setEnquiryProduct({name:selectedPrice.name,price:"₹"+selectedPrice.price.toLocaleString("en-IN")+"/MT"});}}>
+                Get Quote for {selectedPrice.name}
+              </button>
+              <button onClick={()=>setSelectedPrice(null)} style={{padding:"13px 20px",background:"rgba(255,255,255,0.05)",border:"1px solid rgba(255,255,255,0.1)",borderRadius:10,color:"rgba(255,255,255,0.45)",fontSize:13,cursor:"pointer"}}>
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
