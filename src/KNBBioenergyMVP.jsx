@@ -777,7 +777,7 @@ export default function KNBPlatform() {
 
   const navTo = (id) => {
     setActiveNav(id);
-    document.getElementById(id)?.scrollIntoView({behavior:"smooth", block:"start"});
+    window.scrollTo({top:0, behavior:"smooth"});
   };
 
   const filteredProducts = PRODUCTS.filter(p => {
@@ -832,7 +832,7 @@ export default function KNBPlatform() {
           </div>
         </div>
         <div className="nav-center">
-          {[["marketplace","Marketplace"],["exchange","Prices"],["certification","Certification"],["carbon","Carbon Credits"]].map(([id,label]) => (
+          {[["home","Home"],["products","Products"],["exchange","Exchange"],["about","About"],["contact","Contact"]].map(([id,label]) => (
             <button key={id} className={`nav-link ${activeNav===id?"active":""}`} onClick={() => navTo(id)}>{label}</button>
           ))}
         </div>
@@ -842,15 +842,19 @@ export default function KNBPlatform() {
         </div>
       </nav>
 
-      {/* LIVE TICKER */}
+      {/* ═══════════════════════════════════════
+          HOME PAGE
+      ═══════════════════════════════════════ */}
+      {activeNav === "home" && <>
+
+      {/* TICKER */}
       <div className="ticker-wrap">
         <div className="ticker-scroll">
           {[...INIT_PRICES,...INIT_PRICES].map((p,i) => (
             <div key={i} className="ticker-item">
               <span className="t-name">{p.name}</span>
-              <span className="t-price">{p.price}/MT</span>
-              <span className={p.up?"t-up":"t-dn"}>{p.chg} ({p.pct})</span>
-              <span style={{color:"rgba(255,255,255,0.3)",fontSize:11}}>Vol {p.vol}</span>
+              <span className="t-price">₹{p.price.toLocaleString("en-IN")}/MT</span>
+              <span style={{color:"rgba(255,255,255,0.3)",fontSize:11}}>Cal: {p.cal} kcal/kg</span>
             </div>
           ))}
         </div>
@@ -865,7 +869,7 @@ export default function KNBPlatform() {
             <h1>Buy & Sell<br/><em>Clean Biomass</em><br/>with Confidence</h1>
             <p className="hero-sub">Connect with verified suppliers and industrial buyers. Every product is quality-certified. Every transaction generates carbon offset data.</p>
             <div className="hero-actions">
-              <button className="btn-harvest btn-lg" onClick={() => navTo("marketplace")}>Browse Products</button>
+              <button className="btn-harvest btn-lg" onClick={() => navTo("products")}>Browse Products</button>
               <button className="btn-outline-leaf btn-lg" onClick={() => setModal("choose-role")}>Join the Platform</button>
             </div>
             <div className="hero-trust">
@@ -911,45 +915,80 @@ export default function KNBPlatform() {
         </div>
       </div>
 
-      {/* HOW IT WORKS */}
-      <section className="section alt-bg" id="how-it-works">
-        <div className="section-narrow">
-          <div className="section-header">
-            <div className="section-kicker">How It Works</div>
-            <div className="section-h2">Simple for everyone on the platform</div>
-          </div>
-          <div style={{marginBottom:32}}>
-            <div className="role-tabs">
-              {[["🌾","Farmers"],["🏭","Suppliers"],["🏗️","Buyers"]].map(([icon,label],i) => {
-                const roles = ["farmer","supplier","buyer"];
-                const cls = ["active-farmer","active-supplier","active-buyer"];
-                const [hiwRole, setHiwRole] = [activeNav, setActiveNav]; // reuse state
-                return null; // rendered below with local state
-              })}
-            </div>
-          </div>
-          <HowItWorks />
-        </div>
-      </section>
-
-      {/* MARKETPLACE */}
-      <section className="section" id="marketplace">
+      {/* HOME: FEATURED PRODUCTS (3 items teaser) */}
+      <section className="section" style={{background:"var(--paper)"}}>
         <div className="section-narrow">
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:32}}>
             <div>
-              <div className="section-kicker">Marketplace</div>
-              <div className="section-h2">Browse <em>Verified</em> Products</div>
-              <div className="section-desc">Every listing is lab-tested. Platform Assured products are independently verified by Greenifit.</div>
+              <div className="section-kicker">Our Products</div>
+              <div className="section-h2">Trusted <em>Biomass Products</em></div>
+              <div className="section-desc">Lab-tested briquettes & pellets. 300+ tons/day. Direct from manufacturer.</div>
             </div>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <button className="btn-harvest" onClick={() => openRegister("supplier")}>+ List Your Product</button>
-              <button className="btn-outline-leaf" onClick={() => openRegister("farmer")}>Sell Raw Biomass</button>
+            <button className="btn-harvest" onClick={() => navTo("products")}>View All Products →</button>
+          </div>
+          <div className="mkt-grid">
+            {PRODUCTS.slice(0,3).map(p => (
+              <div key={p.id} className="prod-card">
+                {p.img && <img src={p.img} alt={p.name} style={{width:"100%",height:"160px",objectFit:"cover",display:"block"}} onError={e=>e.target.style.display="none"}/>}
+                <div className="prod-card-top" style={{marginTop: p.img ? 12 : 0}}>
+                  <span className={`prod-type-tag ${TAG_COLORS[p.type]||"tag-bio"}`}>{p.type}</span>
+                  {p.cert && <span className="cert-badge">✓ KNB Assured</span>}
+                </div>
+                <div className="prod-body">
+                  <div className="prod-name">{p.name}</div>
+                  <div className="prod-specs">
+                    <div className="spec"><div className="spec-k">Calorific Value</div><div className="spec-v">{p.cal} kcal/kg</div></div>
+                    <div className="spec"><div className="spec-k">Moisture</div><div className="spec-v">{p.moist}</div></div>
+                    <div className="spec"><div className="spec-k">Min Order</div><div className="spec-v">{p.moq}</div></div>
+                  </div>
+                </div>
+                <div className="prod-foot">
+                  <div>
+                    <div className="prod-price-val">₹{p.price}<span className="prod-price-unit">/MT</span></div>
+                    <div className="prod-moq">Min. {p.moq}</div>
+                  </div>
+                  <button className="btn-enquire" onClick={() => handleEnquire(p)}>Get Quote</button>
+                </div>
+              </div>
+            ))}
+          </div>
+          <div style={{textAlign:"center",marginTop:32}}>
+            <button className="btn-ghost" style={{padding:"13px 40px",fontSize:15}} onClick={() => navTo("products")}>Browse All 13 Products →</button>
+          </div>
+        </div>
+      </section>
+
+      {/* HOME: BOTTOM CTA */}
+      <section className="cta-bottom">
+        <h2>Ready to source <em>clean biomass?</em></h2>
+        <p>India's most trusted bioenergy platform. Verified products. Transparent pricing.</p>
+        <div className="cta-buttons">
+          <button className="btn-harvest btn-xl" onClick={() => setModal("choose-role")}>Get Started Free →</button>
+          <button className="btn-outline-leaf btn-xl" onClick={() => navTo("contact")}>Talk to Us</button>
+        </div>
+        <div className="cta-note">Free to join · No listing fees · NABL Certified Products</div>
+      </section>
+
+      </>}{/* END HOME */}
+
+      {/* ═══════════════════════════════════════
+          PRODUCTS PAGE
+      ═══════════════════════════════════════ */}
+      {activeNav === "products" && <>
+      <section className="section" style={{background:"var(--paper)",paddingTop:48}}>
+        <div className="section-narrow">
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:28}}>
+            <div>
+              <div className="section-kicker">All Products</div>
+              <div className="section-h2">KNB <em>Product Catalog</em></div>
+              <div className="section-desc">Every product is lab-tested. NABL certified. Direct from our manufacturing plant in Akola, MH.</div>
             </div>
+            <button className="btn-harvest" onClick={() => setModal("choose-role")}>+ Get Quote</button>
           </div>
           <div className="mkt-controls">
             <div className="search-box">
               <span style={{color:"var(--text-muted)",fontSize:16}}>🔍</span>
-              <input placeholder="Search products, sellers, locations…" value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
+              <input placeholder="Search by product name…" value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
             </div>
             <div className="filter-row">
               {TYPES.map(t => <div key={t} className={`chip ${typeFilter===t?"on":""}`} onClick={()=>setTypeFilter(t)}>{t}</div>)}
@@ -1003,6 +1042,23 @@ export default function KNBPlatform() {
           )}
         </div>
       </section>
+      </>}{/* END PRODUCTS */}
+
+      {/* ═══════════════════════════════════════
+          EXCHANGE PAGE
+      ═══════════════════════════════════════ */}
+      {activeNav === "exchange" && <>
+      <div className="ticker-wrap">
+        <div className="ticker-scroll">
+          {[...INIT_PRICES,...INIT_PRICES].map((p,i) => (
+            <div key={i} className="ticker-item">
+              <span className="t-name">{p.name}</span>
+              <span className="t-price">₹{p.price.toLocaleString("en-IN")}/MT</span>
+              <span style={{color:"rgba(255,255,255,0.3)",fontSize:11}}>Cal: {p.cal} kcal/kg</span>
+            </div>
+          ))}
+        </div>
+      </div>
 
       {/* SPOT EXCHANGE */}
       <section className="section exchange-section" id="exchange">
@@ -1066,6 +1122,23 @@ export default function KNBPlatform() {
               </tbody>
             </table>
           </div>
+        </div>
+      </section>
+      </>}{/* END EXCHANGE */}
+
+      {/* ═══════════════════════════════════════
+          ABOUT PAGE
+      ═══════════════════════════════════════ */}
+      {activeNav === "about" && <>
+
+      {/* HOW IT WORKS */}
+      <section className="section alt-bg">
+        <div className="section-narrow">
+          <div className="section-header">
+            <div className="section-kicker">How It Works</div>
+            <div className="section-h2">Simple. Transparent. <em>Trusted.</em></div>
+          </div>
+          <HowItWorks />
         </div>
       </section>
 
@@ -1168,16 +1241,77 @@ export default function KNBPlatform() {
         </div>
       </section>
 
-      {/* BOTTOM CTA */}
-      <section className="cta-bottom">
-        <h2>Ready to trade <em>smarter biomass?</em></h2>
-        <p>Join farmers, suppliers, and industrial buyers already on India's most trusted bioenergy platform.</p>
-        <div className="cta-buttons">
-          <button className="btn-harvest btn-xl" onClick={() => setModal("choose-role")}>Create Free Account →</button>
-          <button className="btn-outline-leaf btn-xl" onClick={() => navTo("marketplace")}>Browse Products</button>
+      </>}{/* END ABOUT */}
+
+      {/* ═══════════════════════════════════════
+          CONTACT PAGE
+      ═══════════════════════════════════════ */}
+      {activeNav === "contact" && <>
+      <section className="section" style={{background:"var(--paper)",paddingTop:60}}>
+        <div className="section-narrow">
+          <div style={{textAlign:"center",maxWidth:600,margin:"0 auto 56px"}}>
+            <div className="section-kicker">Get In Touch</div>
+            <div className="section-h2">Talk to Our <em>Team</em></div>
+            <div className="section-desc">Get bulk quotes, register on the platform, or ask us anything. We respond within 24 hours.</div>
+          </div>
+
+          <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:32,marginBottom:48}}>
+            {/* Quick Actions */}
+            <div style={{display:"flex",flexDirection:"column",gap:16}}>
+              <div style={{fontWeight:700,fontSize:16,color:"var(--soil)",marginBottom:4}}>What do you need?</div>
+              {[
+                {icon:"📦",title:"Get a Bulk Quote",sub:"Tell us the product & quantity. We'll send pricing within 24 hrs.",action:()=>{setModal("enquiry");setEnquiryProduct({name:"Bulk Order",price:"—"});}},
+                {icon:"🏭",title:"Register as a Buyer",sub:"Create your buyer account to access the full platform.",action:()=>openRegister("buyer")},
+                {icon:"🌿",title:"Carbon Credits Query",sub:"Learn how KNB credits can help your ESG & BRSR reporting.",action:()=>{setModal("enquiry");setEnquiryProduct({name:"Carbon Credit Registration",price:"—"});}},
+                {icon:"💼",title:"Partnership / Distributor",sub:"Interested in distributing KNB products in your region?",action:()=>{setModal("enquiry");setEnquiryProduct({name:"Partnership Enquiry",price:"—"});}}
+              ].map(({icon,title,sub,action}) => (
+                <div key={title} onClick={action} style={{background:"var(--cream)",border:"1px solid var(--border)",borderRadius:12,padding:"16px 20px",cursor:"pointer",display:"flex",gap:16,alignItems:"center",transition:"all 0.15s"}}
+                  onMouseEnter={e=>e.currentTarget.style.borderColor="var(--leaf)"}
+                  onMouseLeave={e=>e.currentTarget.style.borderColor="var(--border)"}>
+                  <div style={{fontSize:28,flexShrink:0}}>{icon}</div>
+                  <div>
+                    <div style={{fontWeight:600,fontSize:14,color:"var(--soil)"}}>{title}</div>
+                    <div style={{fontSize:12,color:"var(--text-muted)",marginTop:2}}>{sub}</div>
+                  </div>
+                  <div style={{marginLeft:"auto",color:"var(--text-muted)",fontSize:18}}>›</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Company Details */}
+            <div style={{background:"var(--soil)",borderRadius:16,padding:32,color:"white"}}>
+              <div style={{fontSize:18,fontWeight:700,marginBottom:6}}>🌿 KNB Green Energy Ltd</div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",marginBottom:24}}>India's Leading Biomass Manufacturer</div>
+              {[
+                ["📞","Call Us","+91 99206 57193\n+91 9920 225395"],
+                ["✉️","Email Us","knbgreenenergy@gmail.com\nkinjal@knbgreenenergy.com"],
+                ["📍","Mumbai Office","Dahisar, Mumbai – 400068"],
+                ["🏭","Manufacturing Plant","Gut No.33, Akola – 444107, MH"],
+                ["⏱️","Response Time","Within 24 business hours"],
+              ].map(([icon,label,val]) => (
+                <div key={label} style={{marginBottom:20}}>
+                  <div style={{fontSize:11,color:"rgba(255,255,255,0.35)",textTransform:"uppercase",letterSpacing:"1px",marginBottom:4}}>{icon} {label}</div>
+                  {val.split("\n").map(v => <div key={v} style={{fontSize:13,color:"rgba(255,255,255,0.8)",fontWeight:500}}>{v}</div>)}
+                </div>
+              ))}
+              <button className="btn-harvest" style={{width:"100%",padding:"13px",marginTop:8}} onClick={()=>{setModal("enquiry");setEnquiryProduct({name:"General Enquiry",price:"—"});}}>
+                Send Enquiry →
+              </button>
+            </div>
+          </div>
+
+          {/* Badges row */}
+          <div style={{textAlign:"center",padding:"32px 0",borderTop:"1px solid var(--border)"}}>
+            <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>Certified & Compliant</div>
+            <div style={{display:"flex",flexWrap:"wrap",gap:10,justifyContent:"center"}}>
+              {["NABL Partner","Greenifit Verified","Verra VCS","Gold Standard","CCTS Ready","BEE PAT","ISO 9001"].map(b => (
+                <span key={b} style={{background:"var(--mint)",color:"var(--leaf)",fontSize:11.5,fontWeight:600,padding:"5px 12px",borderRadius:20,border:"1px solid rgba(46,107,53,0.2)"}}>{b}</span>
+              ))}
+            </div>
+          </div>
         </div>
-        <div className="cta-note">Free to join · No listing fees for farmers · Transparent pricing</div>
       </section>
+      </>}{/* END CONTACT */}
 
       {/* FOOTER */}
       <footer className="footer">
