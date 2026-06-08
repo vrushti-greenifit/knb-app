@@ -1,4 +1,7 @@
 import { useState, useEffect, useRef } from "react";
+import { auth, db } from "./firebase";
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "firebase/auth";
+import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap');`;
@@ -760,6 +763,130 @@ export default function KNBPlatform() {
   const [showAllProducts, setShowAllProducts] = useState(false);
   const [enquiryProduct, setEnquiryProduct] = useState(null);
 
+  // ── Auth state ──
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [authErr, setAuthErr] = useState("");
+  const [authBusy, setAuthBusy] = useState(false);
+
+  // ── Login form ──
+  const [loginEmail, setLoginEmail] = useState("");
+  const [loginPass, setLoginPass] = useState("");
+
+  // ── Register form (controlled inputs) ──
+  const [regName, setRegName] = useState("");
+  const [regCompany, setRegCompany] = useState("");
+  const [regPhone, setRegPhone] = useState("");
+  const [regEmail, setRegEmail] = useState("");
+  const [regPass, setRegPass] = useState("");
+  const [regIndustry, setRegIndustry] = useState("Textiles");
+  const [regLocation, setRegLocation] = useState("");
+  const [regRequirement, setRegRequirement] = useState("");
+
+  // ── Enquiry form (controlled inputs) ──
+  const [enqName, setEnqName] = useState("");
+  const [enqCompany, setEnqCompany] = useState("");
+  const [enqEmail, setEnqEmail] = useState("");
+  const [enqPhone, setEnqPhone] = useState("");
+  const [enqQty, setEnqQty] = useState("");
+  const [enqLocation, setEnqLocation] = useState("");
+  const [enqMsg, setEnqMsg] = useState("");
+
+  // Auto-fill enquiry when logged in
+  useEffect(() => {
+    if (modal === "enquiry" && userProfile) {
+      setEnqName(userProfile.name || "");
+      setEnqCompany(userProfile.company || "");
+      setEnqEmail(userProfile.email || "");
+      setEnqPhone(userProfile.phone || "");
+    }
+  }, [modal]);
+
+  // Auth state listener
+  useEffect(() => {
+    const unsub = onAuthStateChanged(auth, async (user) => {
+      setCurrentUser(user);
+      if (user) {
+        try {
+          const snap = await getDoc(doc(db, "users", user.uid));
+          if (snap.exists()) setUserProfile(snap.data());
+        } catch(e) {}
+      } else {
+        setUserProfile(null);
+      }
+    });
+    return unsub;
+  }, []);
+
+  // ── Auth helper ──
+  const getAuthErrMsg = (code) => ({
+    "auth/user-not-found":      "No account found with this email.",
+    "auth/wrong-password":      "Incorrect password.",
+    "auth/invalid-credential":  "Incorrect email or password.",
+    "auth/email-already-in-use":"This email is already registered. Sign in instead.",
+    "auth/weak-password":       "Password must be at least 6 characters.",
+    "auth/invalid-email":       "Please enter a valid email address.",
+    "auth/too-many-requests":   "Too many attempts. Please try again later.",
+  }[code] || "Something went wrong. Please try again.");
+
+  const handleLogin = async () => {
+    if (!loginEmail || !loginPass) { setAuthErr("Please enter your email and password."); return; }
+    setAuthErr(""); setAuthBusy(true);
+    try {
+      await signInWithEmailAndPassword(auth, loginEmail, loginPass);
+      setModal(null); setLoginEmail(""); setLoginPass("");
+      showToast("✓ Welcome back!");
+    } catch(e) { setAuthErr(getAuthErrMsg(e.code)); }
+    setAuthBusy(false);
+  };
+
+  const handleRegister = async () => {
+    if (!regName || !regEmail || !regPass || !regPhone) {
+      setAuthErr("Please fill all required fields (name, phone, email, password)."); return;
+    }
+    if (regPass.length < 6) { setAuthErr("Password must be at least 6 characters."); return; }
+    setAuthErr(""); setAuthBusy(true);
+    try {
+      const cred = await createUserWithEmailAndPassword(auth, regEmail, regPass);
+      await setDoc(doc(db, "users", cred.user.uid), {
+        name: regName, company: regCompany, phone: regPhone,
+        email: regEmail, role: regRole,
+        industry: regIndustry, location: regLocation,
+        requirement: regRequirement, biomass: selectedBiomass,
+        createdAt: new Date().toISOString(),
+      });
+      setModal(null); setRegStep(1);
+      setRegName(""); setRegCompany(""); setRegPhone("");
+      setRegEmail(""); setRegPass(""); setRegLocation(""); setRegRequirement("");
+      showToast(`✓ Welcome to KNB, ${regName.split(" ")[0]}! Our team will be in touch.`);
+    } catch(e) { setAuthErr(getAuthErrMsg(e.code)); }
+    setAuthBusy(false);
+  };
+
+  const handleEnquirySubmit = async () => {
+    if (!enqName || !enqEmail || !enqPhone) {
+      showToast("Please fill your name, email and mobile number."); return;
+    }
+    try {
+      await addDoc(collection(db, "enquiries"), {
+        product: enquiryProduct?.name || "",
+        price: enquiryProduct?.price || "",
+        name: enqName, company: enqCompany,
+        email: enqEmail, phone: enqPhone,
+        qty: enqQty, location: enqLocation, message: enqMsg,
+        userId: currentUser?.uid || null,
+        status: "new",
+        createdAt: new Date().toISOString(),
+      });
+      setModal(null);
+      setEnqName(""); setEnqCompany(""); setEnqEmail("");
+      setEnqPhone(""); setEnqQty(""); setEnqLocation(""); setEnqMsg("");
+      showToast("✓ Enquiry sent! KNB team will contact you within 24 hours.");
+    } catch(e) {
+      showToast("❌ Submit failed. Please call: +91 99206 57193");
+    }
+  };
+
   // Clock only
   useEffect(() => {
     const t = setInterval(() => {
@@ -837,8 +964,24 @@ export default function KNBPlatform() {
           ))}
         </div>
         <div className="nav-right">
-          <button className="btn-ghost" onClick={() => openRegister("buyer")}>Sign In</button>
-          <button className="btn-primary" onClick={() => setModal("choose-role")}>Get Started →</button>
+          {currentUser ? (
+            <>
+              <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid rgba(46,107,53,0.15)"}}>
+                <div style={{width:26,height:26,borderRadius:"50%",background:"var(--leaf)",color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>
+                  {(userProfile?.name || currentUser.email || "U")[0].toUpperCase()}
+                </div>
+                <span style={{fontSize:12,color:"var(--leaf)",fontWeight:600,maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                  {userProfile?.name?.split(" ")[0] || "Account"}
+                </span>
+              </div>
+              <button className="btn-ghost" style={{fontSize:13}} onClick={() => signOut(auth).then(() => showToast("Signed out."))}>Sign Out</button>
+            </>
+          ) : (
+            <>
+              <button className="btn-ghost" onClick={() => { setAuthErr(""); setModal("login"); }}>Sign In</button>
+              <button className="btn-primary" onClick={() => setModal("choose-role")}>Get Started →</button>
+            </>
+          )}
         </div>
       </nav>
 
@@ -1353,10 +1496,33 @@ export default function KNBPlatform() {
 
       {/* ── MODALS ── */}
       {modal && (
-        <div className="overlay" onClick={e => e.target===e.currentTarget && (setModal(null), setRegStep(1))}>
+        <div className="overlay" onClick={e => e.target===e.currentTarget && (setModal(null), setRegStep(1), setAuthErr(""))}>
           <div className="modal-box" style={modal==="register" && regRole==="farmer" ? {background:"var(--bark)"} : {}}>
 
-            {/* Choose Role */}
+            {/* ── LOGIN ── */}
+            {modal === "login" && (
+              <>
+                <div className="modal-hd">
+                  <div><div className="modal-title">Sign In</div><div className="modal-sub">Welcome back to KNB BioEnergy</div></div>
+                  <button className="modal-close" onClick={() => { setModal(null); setAuthErr(""); }}>×</button>
+                </div>
+                <div className="mf"><label>Email Address</label>
+                  <input type="email" placeholder="you@company.com" value={loginEmail} onChange={e=>setLoginEmail(e.target.value)}/>
+                </div>
+                <div className="mf"><label>Password</label>
+                  <input type="password" placeholder="Your password" value={loginPass} onChange={e=>setLoginPass(e.target.value)} onKeyDown={e=>e.key==="Enter"&&handleLogin()}/>
+                </div>
+                {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
+                <div className="modal-footer">
+                  <button className="btn-cancel" onClick={() => { setModal("choose-role"); setAuthErr(""); }}>New here? Register →</button>
+                  <button className="btn-submit sky" onClick={handleLogin} disabled={authBusy}>
+                    {authBusy ? "Signing in…" : "Sign In →"}
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* ── CHOOSE ROLE ── */}
             {modal === "choose-role" && (
               <>
                 <div className="modal-hd">
@@ -1380,37 +1546,103 @@ export default function KNBPlatform() {
               </>
             )}
 
-            {/* Registration — multi-step */}
+            {/* ── REGISTER (multi-step, real Firebase auth) ── */}
             {modal === "register" && (
               <>
                 <div className="modal-hd">
                   <div>
                     <div className={`modal-title ${regRole==="farmer"?"light":""}`}>
-                      {{farmer:"🌾 Farmer Registration",supplier:"🏭 Supplier Registration",buyer:"🏗️ Buyer Registration"}[regRole]}
+                      {{farmer:"🌾 Join as Farmer",supplier:"🏭 Join as Supplier",buyer:"🏗️ Join as Buyer"}[regRole]}
                     </div>
-                    <div className={`modal-sub ${regRole==="farmer"?"light":""}`}>Step {regStep} of 2</div>
+                    <div className={`modal-sub ${regRole==="farmer"?"light":""}`}>
+                      Step {regStep} of 2 · {regRole==="buyer"?"Industrial Buyer":regRole==="supplier"?"Supplier / Manufacturer":"Farmer / Raw Material"}
+                    </div>
                   </div>
-                  <button className={`modal-close ${regRole==="farmer"?"dark-close":""}`} onClick={() => { setModal(null); setRegStep(1); }}>×</button>
+                  <button className={`modal-close ${regRole==="farmer"?"dark-close":""}`} onClick={() => { setModal(null); setRegStep(1); setAuthErr(""); }}>×</button>
                 </div>
                 <div className="step-indicator">
                   {[1,2].map(s => <div key={s} className={`step-dot ${regStep>=s?"done":""}`}/>)}
                 </div>
-                {regRole === "farmer" && regStep === 1 && (
+
+                {/* ─ Step 1: Common for all roles ─ */}
+                {regStep === 1 && (
                   <div>
                     <div className="modal-row">
-                      <div className={`mf mf-dark`}><label>Full Name</label><input placeholder="Your name"/></div>
-                      <div className={`mf mf-dark`}><label>Mobile Number</label><input placeholder="+91 98765 43210"/></div>
+                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Full Name *</label>
+                        <input placeholder="Your full name" value={regName} onChange={e=>setRegName(e.target.value)}/>
+                      </div>
+                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Company / Organization</label>
+                        <input placeholder={regRole==="farmer"?"Village / Farm name":"Company name"} value={regCompany} onChange={e=>setRegCompany(e.target.value)}/>
+                      </div>
                     </div>
-                    <div className={`mf mf-dark`}><label>Village / District / State</label><input placeholder="e.g. Sinnar, Nashik, Maharashtra"/></div>
+                    <div className="modal-row">
+                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Mobile Number *</label>
+                        <input placeholder="+91 98765 43210" value={regPhone} onChange={e=>setRegPhone(e.target.value)}/>
+                      </div>
+                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Business Email *</label>
+                        <input type="email" placeholder="you@company.com" value={regEmail} onChange={e=>setRegEmail(e.target.value)}/>
+                      </div>
+                    </div>
+                    <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Create Password * (min 6 characters)</label>
+                      <input type="password" placeholder="Set a password for your account" value={regPass} onChange={e=>setRegPass(e.target.value)}/>
+                    </div>
+                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
                     <div className="modal-footer">
-                      <button className="btn-cancel" style={{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}} onClick={() => setModal(null)}>Back</button>
-                      <button className="btn-submit harvest" onClick={() => setRegStep(2)}>Continue →</button>
+                      <button className="btn-cancel" style={regRole==="farmer"?{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}:{}} onClick={() => setModal(null)}>Cancel</button>
+                      <button className={`btn-submit ${regRole==="farmer"?"harvest":regRole==="buyer"?"sky":""}`}
+                        onClick={() => { if(!regName||!regEmail||!regPhone){setAuthErr("Please fill required fields.");return;} setAuthErr(""); setRegStep(2); }}>
+                        Continue →
+                      </button>
                     </div>
                   </div>
                 )}
-                {regRole === "farmer" && regStep === 2 && (
+
+                {/* ─ Step 2: Role-specific ─ */}
+                {regStep === 2 && regRole === "buyer" && (
                   <div>
-                    <div className={`mf mf-dark`}><label>Available Biomass Types (select all)</label>
+                    <div className="modal-row">
+                      <div className="mf"><label>Industry *</label>
+                        <select value={regIndustry} onChange={e=>setRegIndustry(e.target.value)}>
+                          {["Textiles","Chemicals","Cement","Paper & Pulp","Food Processing","Ceramics","Pharma","Steel / Foundry","Other"].map(x=><option key={x}>{x}</option>)}
+                        </select>
+                      </div>
+                      <div className="mf"><label>Annual Requirement (MT)</label>
+                        <input type="number" placeholder="e.g. 2400" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
+                      </div>
+                    </div>
+                    <div className="mf"><label>Delivery Location</label>
+                      <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                    </div>
+                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
+                    <div className="modal-footer">
+                      <button className="btn-cancel" onClick={() => { setRegStep(1); setAuthErr(""); }}>← Back</button>
+                      <button className="btn-submit sky" onClick={handleRegister} disabled={authBusy}>{authBusy?"Creating account…":"Create Account →"}</button>
+                    </div>
+                  </div>
+                )}
+                {regStep === 2 && regRole === "supplier" && (
+                  <div>
+                    <div className="modal-row">
+                      <div className="mf"><label>Product Type</label>
+                        <select><option>Biomass Briquettes</option><option>Wood Pellets</option><option>Agro Pellets</option><option>Biochar</option><option>Multiple</option></select>
+                      </div>
+                      <div className="mf"><label>Monthly Capacity (MT)</label>
+                        <input type="number" placeholder="e.g. 500" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
+                      </div>
+                    </div>
+                    <div className="mf"><label>Manufacturing Location</label>
+                      <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                    </div>
+                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
+                    <div className="modal-footer">
+                      <button className="btn-cancel" onClick={() => { setRegStep(1); setAuthErr(""); }}>← Back</button>
+                      <button className="btn-submit" onClick={handleRegister} disabled={authBusy}>{authBusy?"Creating account…":"Register & List →"}</button>
+                    </div>
+                  </div>
+                )}
+                {regStep === 2 && regRole === "farmer" && (
+                  <div>
+                    <div className={`mf mf-dark`}><label>Available Biomass (select all that apply)</label>
                       <div className="biomass-picker" style={{marginTop:6}}>
                         {BIOMASS_TYPES.map(b => (
                           <div key={b} className={`biomass-opt ${selectedBiomass.includes(b)?"sel":""}`}
@@ -1418,120 +1650,64 @@ export default function KNBPlatform() {
                         ))}
                       </div>
                     </div>
+                    <div className={`mf mf-dark`}><label>Village / District / State</label>
+                      <input placeholder="e.g. Sinnar, Nashik, Maharashtra" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                    </div>
+                    {authErr && <div style={{fontSize:12,color:"#c0392b",background:"#fef2f2",border:"1px solid #fecaca",padding:"8px 12px",borderRadius:6,marginTop:4}}>{authErr}</div>}
                     <div className="modal-footer">
-                      <button className="btn-cancel" style={{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}} onClick={() => setRegStep(1)}>← Back</button>
-                      <button className="btn-submit harvest" onClick={handleSubmit}>Submit Registration →</button>
-                    </div>
-                  </div>
-                )}
-                {regRole === "supplier" && regStep === 1 && (
-                  <div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Company Name</label><input placeholder="Your company"/></div>
-                      <div className="mf"><label>GSTIN</label><input placeholder="22AAAAA0000A1Z5"/></div>
-                    </div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Contact Person</label><input placeholder="Full name"/></div>
-                      <div className="mf"><label>Mobile</label><input placeholder="+91 98765 43210"/></div>
-                    </div>
-                    <div className="mf"><label>Business Email</label><input type="email" placeholder="you@company.com"/></div>
-                    <div className="mf"><label>Manufacturing Location</label><input placeholder="City, State"/></div>
-                    <div className="modal-footer">
-                      <button className="btn-cancel" onClick={() => setModal(null)}>Cancel</button>
-                      <button className="btn-submit" onClick={() => setRegStep(2)}>Continue →</button>
-                    </div>
-                  </div>
-                )}
-                {regRole === "supplier" && regStep === 2 && (
-                  <div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Product Category</label>
-                        <select><option>Biomass Briquettes</option><option>Wood Pellets</option><option>Agro Pellets</option><option>Biochar</option><option>Raw Biomass</option><option>Multiple</option></select>
-                      </div>
-                      <div className="mf"><label>Monthly Capacity (MT)</label><input type="number" placeholder="e.g. 500"/></div>
-                    </div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Calorific Value (kcal/kg)</label><input type="number" placeholder="e.g. 3800"/></div>
-                      <div className="mf"><label>Asking Price (₹/MT)</label><input type="number" placeholder="e.g. 6200"/></div>
-                    </div>
-                    <div className="mf"><label>Do you have an NABL lab report?</label>
-                      <select><option>Yes — I'll upload it</option><option>No — I need certification help</option><option>In progress</option></select>
-                    </div>
-                    <div className="modal-footer">
-                      <button className="btn-cancel" onClick={() => setRegStep(1)}>← Back</button>
-                      <button className="btn-submit" onClick={handleSubmit}>Register & List →</button>
-                    </div>
-                  </div>
-                )}
-                {regRole === "buyer" && regStep === 1 && (
-                  <div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Company Name</label><input placeholder="Your company"/></div>
-                      <div className="mf"><label>Industry</label>
-                        <select><option>Textiles</option><option>Chemicals</option><option>Cement</option><option>Paper & Pulp</option><option>Food Processing</option><option>Ceramics</option><option>Pharma</option><option>Steel / Foundry</option><option>Other</option></select>
-                      </div>
-                    </div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Contact Name</label><input placeholder="Full name"/></div>
-                      <div className="mf"><label>Designation</label><input placeholder="e.g. Purchase Manager"/></div>
-                    </div>
-                    <div className="mf"><label>Business Email</label><input type="email" placeholder="you@company.com"/></div>
-                    <div className="modal-footer">
-                      <button className="btn-cancel" onClick={() => setModal(null)}>Cancel</button>
-                      <button className="btn-submit sky" onClick={() => setRegStep(2)}>Continue →</button>
-                    </div>
-                  </div>
-                )}
-                {regRole === "buyer" && regStep === 2 && (
-                  <div>
-                    <div className="modal-row">
-                      <div className="mf"><label>Annual Requirement (MT)</label><input type="number" placeholder="e.g. 2400"/></div>
-                      <div className="mf"><label>Current Fuel Used</label>
-                        <select><option>Coal</option><option>Furnace Oil</option><option>Natural Gas</option><option>LPG</option><option>Wood (unverified)</option><option>Already using biomass</option></select>
-                      </div>
-                    </div>
-                    <div className="mf"><label>Delivery Location</label><input placeholder="City, State"/></div>
-                    <div className="mf"><label>Need Carbon Credits?</label>
-                      <select><option>Yes — for ESG / BRSR reporting</option><option>Yes — for CCTS compliance</option><option>Not sure yet</option><option>No</option></select>
-                    </div>
-                    <div className="modal-footer">
-                      <button className="btn-cancel" onClick={() => setRegStep(1)}>← Back</button>
-                      <button className="btn-submit sky" onClick={handleSubmit}>Create Account →</button>
+                      <button className="btn-cancel" style={{background:"rgba(255,255,255,0.07)",color:"rgba(255,255,255,0.5)",border:"1px solid rgba(255,255,255,0.1)"}} onClick={() => { setRegStep(1); setAuthErr(""); }}>← Back</button>
+                      <button className="btn-submit harvest" onClick={handleRegister} disabled={authBusy}>{authBusy?"Creating account…":"Submit Registration →"}</button>
                     </div>
                   </div>
                 )}
               </>
             )}
 
-            {/* Enquiry Modal */}
+            {/* ── ENQUIRY (saves to Firestore) ── */}
             {modal === "enquiry" && enquiryProduct && (
               <>
                 <div className="modal-hd">
                   <div>
                     <div className="modal-title">Get a Quote</div>
-                    <div className="modal-sub">{enquiryProduct.name}{enquiryProduct.price && enquiryProduct.price!=="—" ? ` · ${enquiryProduct.price}/MT` : ""}</div>
+                    <div className="modal-sub">{enquiryProduct.name}{enquiryProduct.price && enquiryProduct.price!=="—" ? ` · ${enquiryProduct.price}` : ""}</div>
                   </div>
                   <button className="modal-close" onClick={() => setModal(null)}>×</button>
                 </div>
+                {currentUser && userProfile && (
+                  <div style={{background:"var(--mint)",border:"1px solid rgba(46,107,53,0.2)",borderRadius:8,padding:"8px 12px",marginBottom:12,fontSize:12,color:"var(--leaf)",display:"flex",gap:8,alignItems:"center"}}>
+                    ✓ Logged in as <strong>{userProfile.name}</strong> · form pre-filled
+                  </div>
+                )}
                 <div className="modal-row">
-                  <div className="mf"><label>Your Name</label><input placeholder="Full name"/></div>
-                  <div className="mf"><label>Company</label><input placeholder="Company name"/></div>
+                  <div className="mf"><label>Your Name *</label>
+                    <input placeholder="Full name" value={enqName} onChange={e=>setEnqName(e.target.value)}/>
+                  </div>
+                  <div className="mf"><label>Company</label>
+                    <input placeholder="Company name" value={enqCompany} onChange={e=>setEnqCompany(e.target.value)}/>
+                  </div>
                 </div>
                 <div className="modal-row">
-                  <div className="mf"><label>Email</label><input type="email" placeholder="you@company.com"/></div>
-                  <div className="mf"><label>Mobile</label><input placeholder="+91 98765 43210"/></div>
+                  <div className="mf"><label>Email *</label>
+                    <input type="email" placeholder="you@company.com" value={enqEmail} onChange={e=>setEnqEmail(e.target.value)}/>
+                  </div>
+                  <div className="mf"><label>Mobile *</label>
+                    <input placeholder="+91 98765 43210" value={enqPhone} onChange={e=>setEnqPhone(e.target.value)}/>
+                  </div>
                 </div>
                 <div className="modal-row">
-                  <div className="mf"><label>Quantity Needed (MT)</label><input type="number" placeholder="e.g. 50"/></div>
-                  <div className="mf"><label>Delivery State</label><input placeholder="e.g. Maharashtra"/></div>
+                  <div className="mf"><label>Quantity Needed (MT)</label>
+                    <input type="number" placeholder="e.g. 50" value={enqQty} onChange={e=>setEnqQty(e.target.value)}/>
+                  </div>
+                  <div className="mf"><label>Delivery State</label>
+                    <input placeholder="e.g. Maharashtra" value={enqLocation} onChange={e=>setEnqLocation(e.target.value)}/>
+                  </div>
                 </div>
-                <div className="mf"><label>Include Carbon Credits?</label>
-                  <select><option>Yes — include Scope 1 offset certificate</option><option>No — product only</option><option>Tell me more about this</option></select>
+                <div className="mf"><label>Message / Specific Requirements</label>
+                  <textarea placeholder="Grade, calorific value, delivery timeline, payment terms…" value={enqMsg} onChange={e=>setEnqMsg(e.target.value)}/>
                 </div>
-                <div className="mf"><label>Any specific requirements?</label><textarea placeholder="Grade, calorific value, delivery timeline, payment terms…"/></div>
                 <div className="modal-footer">
                   <button className="btn-cancel" onClick={() => setModal(null)}>Cancel</button>
-                  <button className="btn-submit" onClick={handleSubmit}>Submit Enquiry →</button>
+                  <button className="btn-submit" onClick={handleEnquirySubmit}>Submit Enquiry →</button>
                 </div>
               </>
             )}
