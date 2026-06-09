@@ -558,31 +558,30 @@ input, select, textarea { font-family: inherit; }
 .btn-carbon-outline:hover { background: var(--mint); }
 
 /* ── TRADING TERMINAL ── */
-.terminal-wrap { background:#111827; border-radius:var(--r-lg); overflow:hidden; border:1px solid rgba(255,255,255,0.06); margin-bottom:20px; width:100%; box-shadow:var(--shadow-md); }
-.terminal-header { background:rgba(0,0,0,0.45); padding:12px 18px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.07); }
+.terminal-wrap { background:#fff; border-radius:var(--r-lg); overflow:hidden; border:1.5px solid var(--border); margin-bottom:20px; width:100%; box-shadow:var(--shadow-md); }
+.terminal-header { background:var(--soil); padding:12px 18px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.07); }
 .terminal-body { display:grid; grid-template-columns:1fr 260px; }
-.t-cards-grid { padding:14px; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; border-right:1px solid rgba(255,255,255,0.05); }
-.t-card { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:var(--r-md); padding:12px; cursor:pointer; transition:all 0.15s; }
-.t-card:hover { background:rgba(255,255,255,0.08); }
-.t-card.up-card { border-top:2px solid #27ae60; }
-.t-card.dn-card { border-top:2px solid #e74c3c; }
-.t-short { font-family:monospace; font-size:10px; font-weight:700; color:rgba(255,255,255,0.35); letter-spacing:1.5px; margin-bottom:3px; }
-/* .t-name inside terminal cards (scoped to dark terminal) */
-.terminal-wrap .t-name { font-size:11px; font-weight:600; color:rgba(255,255,255,0.75); margin-bottom:8px; line-height:1.3; }
+.t-cards-grid { padding:14px; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; border-right:1px solid var(--border); background:#fff; }
+.t-card { background:var(--cream); border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px; cursor:pointer; transition:all 0.15s; }
+.t-card:hover { background:#fff; box-shadow:var(--shadow-md); transform:translateY(-2px); }
+.t-card.up-card { border-top:3px solid #059669; }
+.t-card.dn-card { border-top:3px solid #dc2626; }
+.t-short { font-family:monospace; font-size:10px; font-weight:700; color:var(--text-muted); letter-spacing:1.5px; margin-bottom:3px; }
+.terminal-wrap .t-name { font-size:12px; font-weight:600; color:var(--soil); margin-bottom:8px; line-height:1.3; }
 .t-price-big { font-family:'Bricolage Grotesque',monospace; font-size:20px; font-weight:800; margin-bottom:2px; }
-.t-green { color:#27ae60; } .t-red { color:#e74c3c; }
+.t-green { color:#059669; } .t-red { color:#dc2626; }
 .t-chg-row { font-size:10.5px; font-weight:600; margin-bottom:8px; }
 .t-ohlc { display:grid; grid-template-columns:1fr 1fr; gap:3px; margin-bottom:8px; }
 .t-ohlc-item { font-size:9.5px; }
-.t-ohlc-k { color:rgba(255,255,255,0.28); text-transform:uppercase; letter-spacing:0.5px; }
-.t-ohlc-v { color:rgba(255,255,255,0.7); font-family:monospace; font-weight:600; font-size:10px; }
+.t-ohlc-k { color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
+.t-ohlc-v { color:var(--soil); font-family:monospace; font-weight:600; font-size:10px; }
 .t-bid-ask { display:flex; gap:5px; margin-bottom:6px; }
 .t-bid,.t-ask { flex:1; border-radius:4px; padding:4px 6px; text-align:center; }
-.t-bid { background:rgba(39,174,96,0.12); border:1px solid rgba(39,174,96,0.25); }
-.t-ask { background:rgba(231,76,60,0.12); border:1px solid rgba(231,76,60,0.25); }
-.t-ba-lbl { font-size:8.5px; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.8px; }
+.t-bid { background:rgba(5,150,105,0.08); border:1px solid rgba(5,150,105,0.2); }
+.t-ask { background:rgba(220,38,38,0.06); border:1px solid rgba(220,38,38,0.18); }
+.t-ba-lbl { font-size:8.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; }
 .t-ba-val { font-size:12px; font-weight:700; font-family:monospace; }
-.t-vol-row { font-size:9.5px; color:rgba(255,255,255,0.3); }
+.t-vol-row { font-size:9.5px; color:var(--text-muted); }
 /* ── State Price Bar ── */
 .state-price-bar { display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px 18px; margin-bottom:16px; flex-wrap:wrap; box-shadow:var(--shadow-sm); }
 .spb-icon { font-size:18px; }
@@ -592,10 +591,10 @@ input, select, textarea { font-family: inherit; }
 .spb-note { font-size:12px; color:var(--gold); font-weight:600; }
 /* ── Price Card Actions ── */
 .t-card-actions { display:flex; gap:5px; margin-top:8px; }
-.tc-btn-buy { flex:1; background:rgba(39,174,96,0.18); color:#6fcf97; border:1px solid rgba(39,174,96,0.35); border-radius:5px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; transition:background .2s; }
-.tc-btn-buy:hover { background:rgba(39,174,96,0.32); }
-.tc-btn-sell { flex:1; background:rgba(231,76,60,0.15); color:#eb5757; border:1px solid rgba(231,76,60,0.3); border-radius:5px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; transition:background .2s; }
-.tc-btn-sell:hover { background:rgba(231,76,60,0.28); }
+.tc-btn-buy { flex:1; background:var(--leaf); color:#fff; border:none; border-radius:5px; padding:6px 8px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; }
+.tc-btn-buy:hover { background:var(--leaf-mid); box-shadow:0 2px 8px rgba(5,150,105,0.25); }
+.tc-btn-sell { flex:1; background:#fff; color:#dc2626; border:1.5px solid #fca5a5; border-radius:5px; padding:6px 8px; font-size:11px; font-weight:600; cursor:pointer; transition:all .15s; }
+.tc-btn-sell:hover { background:#fef2f2; border-color:#f87171; }
 /* ── Table Buy/Sell Buttons ── */
 .tb-buy-btn { background:var(--leaf); color:#fff; border:none; border-radius:5px; padding:6px 12px; font-size:11.5px; font-weight:600; cursor:pointer; transition:opacity .15s; }
 .tb-buy-btn:hover { opacity:.85; }
@@ -622,19 +621,19 @@ input, select, textarea { font-family: inherit; }
 .ac-bid-btn { background:var(--leaf); color:#fff; border:none; border-radius:var(--r-sm); padding:11px 16px; font-size:13px; font-weight:700; cursor:pointer; transition:all .15s; text-align:center; }
 .ac-bid-btn:hover { background:var(--leaf-mid); box-shadow:0 4px 12px rgba(5,150,105,0.25); }
 /* Deal Feed */
-.deal-panel { padding:12px; overflow:hidden; }
-.deal-title { font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
+.deal-panel { padding:12px; overflow:hidden; background:#fff; }
+.deal-title { font-size:9.5px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
 .deal-title::before { content:''; width:6px; height:6px; border-radius:50%; background:#10b981; animation:pulse 1.2s infinite; }
 .deal-row { padding:6px 8px; border-radius:6px; margin-bottom:4px; animation:deal-in 0.35s ease; border-left:2px solid; }
-.deal-row.buy { background:rgba(39,174,96,0.09); border-color:#27ae60; }
-.deal-row.sell { background:rgba(231,76,60,0.09); border-color:#e74c3c; }
+.deal-row.buy { background:rgba(5,150,105,0.07); border-color:#059669; }
+.deal-row.sell { background:rgba(220,38,38,0.06); border-color:#dc2626; }
 .deal-top { display:flex; justify-content:space-between; align-items:center; margin-bottom:2px; }
 .deal-tag { font-size:8.5px; font-weight:700; padding:1px 5px; border-radius:3px; }
-.buy .deal-tag { background:rgba(39,174,96,0.25); color:#6fcf97; }
-.sell .deal-tag { background:rgba(231,76,60,0.25); color:#eb5757; }
-.deal-prod { font-size:11px; font-weight:700; color:rgba(255,255,255,0.85); font-family:monospace; }
-.deal-meta { font-size:10px; color:rgba(255,255,255,0.4); display:flex; justify-content:space-between; }
-.deal-p { font-family:monospace; font-weight:600; color:rgba(255,255,255,0.7); font-size:10.5px; }
+.buy .deal-tag { background:rgba(5,150,105,0.15); color:#059669; }
+.sell .deal-tag { background:rgba(220,38,38,0.12); color:#dc2626; }
+.deal-prod { font-size:11px; font-weight:700; color:var(--soil); font-family:monospace; }
+.deal-meta { font-size:10px; color:var(--text-muted); display:flex; justify-content:space-between; }
+.deal-p { font-family:monospace; font-weight:600; color:var(--text-secondary); font-size:10.5px; }
 @keyframes deal-in { from{opacity:0;transform:translateY(-8px)} to{opacity:1;transform:translateY(0)} }
 @media(max-width:900px){ .t-cards-grid{grid-template-columns:1fr 1fr;} .terminal-body{grid-template-columns:1fr;} }
 
@@ -1701,10 +1700,10 @@ export default function KNBPlatform() {
                 <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`} onClick={()=>setSelectedPrice(p)} style={{cursor:"pointer"}}>
                   <div className="t-short">{p.short}</div>
                   <div className="t-name">{p.name}</div>
-                  <div className="t-price-big" style={{color:"var(--harvest)"}}>₹{adjPrice(p.price).toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"rgba(255,255,255,0.4)"}}>/MT</span></div>
+                  <div className="t-price-big" style={{color:"var(--leaf)"}}>₹{adjPrice(p.price).toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"var(--text-muted)"}}>/MT</span></div>
                   <div className="t-ohlc" style={{marginTop:8}}>
                     <div className="t-ohlc-item"><div className="t-ohlc-k">Cal. Value</div><div className="t-ohlc-v">{p.cal} kcal/kg</div></div>
-                    <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"var(--harvest)"}}>{p.grade.split("·")[0].trim()}</div></div>
+                    <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"var(--gold)"}}>{p.grade.split("·")[0].trim()}</div></div>
                   </div>
                   <div className="t-bid-ask" style={{marginTop:10}}>
                     <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(adjPrice(p.price)-Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
