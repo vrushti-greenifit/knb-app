@@ -276,7 +276,62 @@ input, select, textarea { font-family: inherit; }
   overflow: hidden; transition: all 0.25s; box-shadow: var(--shadow-sm);
 }
 .prod-card:hover { box-shadow: var(--shadow-lg); transform: translateY(-4px); }
-.prod-card-top { padding: 18px 18px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+.prod-card-top { padding: 14px 16px 0; display: flex; justify-content: space-between; align-items: flex-start; }
+
+/* ── PRODUCT IMAGE HERO ── */
+.prod-img-hero {
+  position: relative; height: 180px; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+}
+.prod-img-bg {
+  position: absolute; inset: 0;
+  background-size: cover; background-position: center;
+  transition: transform 0.4s ease;
+}
+.prod-card:hover .prod-img-bg { transform: scale(1.06); }
+.prod-img-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.25) 0%, rgba(0,0,0,0.5) 100%);
+}
+.prod-raw-circle {
+  position: relative; z-index: 2;
+  width: 88px; height: 88px; border-radius: 50%;
+  object-fit: cover; border: 3px solid rgba(255,255,255,0.9);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.35);
+}
+.prod-type-ribbon {
+  position: absolute; top: 12px; left: 12px; z-index: 3;
+  font-size: 9.5px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
+  padding: 4px 10px; border-radius: 20px;
+}
+.ribbon-brq { background: rgba(196,124,26,0.92); color: white; }
+.ribbon-pel { background: rgba(46,107,53,0.92); color: white; }
+.prod-cert-ribbon {
+  position: absolute; top: 12px; right: 12px; z-index: 3;
+  font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.92);
+  color: var(--leaf); padding: 3px 8px; border-radius: 20px;
+}
+
+/* ── PRODUCT TYPE INTRO CARDS ── */
+.type-intro-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 36px; }
+.type-intro-card {
+  border-radius: var(--r-lg); overflow: hidden; border: 1px solid var(--border);
+  box-shadow: var(--shadow-sm); position: relative; height: 160px;
+  display: flex; align-items: flex-end;
+}
+.type-intro-bg {
+  position: absolute; inset: 0; background-size: cover; background-position: center;
+}
+.type-intro-overlay {
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,0.75) 0%, rgba(0,0,0,0.1) 60%);
+}
+.type-intro-text { position: relative; z-index: 2; padding: 16px 18px; }
+.type-intro-label { font-family: 'Bricolage Grotesque',sans-serif; font-size: 18px; font-weight: 800; color: white; line-height: 1.1; }
+.type-intro-desc { font-size: 11.5px; color: rgba(255,255,255,0.75); margin-top: 3px; line-height: 1.5; }
+.type-intro-tag { display:inline-block; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:3px 8px; border-radius:20px; margin-bottom:6px; }
+.tag-brq-dark { background:rgba(196,124,26,0.9); color:white; }
+.tag-pel-dark { background:rgba(46,107,53,0.9); color:white; }
 .prod-type-tag {
   font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
   padding: 4px 9px; border-radius: 5px;
@@ -1181,10 +1236,15 @@ export default function KNBPlatform() {
           <div className="mkt-grid">
             {PRODUCTS.slice(0,3).map(p => (
               <div key={p.id} className="prod-card">
-                {p.img && <img src={p.img} alt={p.name} style={{width:"100%",height:"160px",objectFit:"cover",display:"block"}} onError={e=>e.target.style.display="none"}/>}
-                <div className="prod-card-top" style={{marginTop: p.img ? 12 : 0}}>
-                  <span className={`prod-type-tag ${TAG_COLORS[p.type]||"tag-bio"}`}>{p.type}</span>
-                  {p.cert && <span className="cert-badge">✓ KNB Assured</span>}
+                <div className="prod-img-hero">
+                  <div className="prod-img-bg" style={{backgroundImage:`url('${p.type==="Pellet"?"/images/pellet-8.jpg":"/images/briquette-5.jpg"}')`}}/>
+                  <div className="prod-img-overlay"/>
+                  {p.img && <img src={p.img} alt={p.name+" raw material"} className="prod-raw-circle" onError={e=>e.target.style.display="none"}/>}
+                  <div className={`prod-type-ribbon ${p.type==="Pellet"?"ribbon-pel":"ribbon-brq"}`}>{p.type}</div>
+                  {p.cert && <div className="prod-cert-ribbon">✓ KNB Assured</div>}
+                </div>
+                <div className="prod-card-top">
+                  <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:500}}>{p.loc}</span>
                 </div>
                 <div className="prod-body">
                   <div className="prod-name">{p.name}</div>
@@ -1229,7 +1289,7 @@ export default function KNBPlatform() {
       {activeNav === "products" && <>
       <section className="section" style={{background:"var(--paper)",paddingTop:48}}>
         <div className="section-narrow">
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:28}}>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:24}}>
             <div>
               <div className="section-kicker">All Products</div>
               <div className="section-h2">KNB <em>Product Catalog</em></div>
@@ -1237,6 +1297,29 @@ export default function KNBPlatform() {
             </div>
             <button className="btn-harvest" onClick={() => setModal("choose-role")}>+ Get Quote</button>
           </div>
+
+          {/* ── WHAT ARE BRIQUETTES & PELLETS? ── */}
+          <div className="type-intro-grid">
+            <div className="type-intro-card">
+              <div className="type-intro-bg" style={{backgroundImage:"url('/images/briquette-5.jpg')"}}/>
+              <div className="type-intro-overlay"/>
+              <div className="type-intro-text">
+                <div className="type-intro-tag tag-brq-dark">Biomass Briquettes</div>
+                <div className="type-intro-label">Dense Solid Fuel Blocks</div>
+                <div className="type-intro-desc">Compressed agricultural waste pressed into cylindrical logs. Burns like coal — used in boilers, brick kilns & furnaces.</div>
+              </div>
+            </div>
+            <div className="type-intro-card">
+              <div className="type-intro-bg" style={{backgroundImage:"url('/images/pellet-8.jpg')"}}/>
+              <div className="type-intro-overlay"/>
+              <div className="type-intro-text">
+                <div className="type-intro-tag tag-pel-dark">Biomass Pellets</div>
+                <div className="type-intro-label">Small Cylindrical Pellets</div>
+                <div className="type-intro-desc">Fine-ground biomass extruded into uniform 6–8mm pellets. Higher energy density, cleaner burn — ideal for pellet burners & gasifiers.</div>
+              </div>
+            </div>
+          </div>
+
           <div className="mkt-controls">
             <div className="search-box">
               <span style={{color:"var(--text-muted)",fontSize:16}}>🔍</span>
@@ -1258,10 +1341,15 @@ export default function KNBPlatform() {
               <div className="mkt-grid">
                 {visibleProducts.map(p => (
                   <div key={p.id} className="prod-card">
-                    {p.img && <img src={p.img} alt={p.name} style={{width:"100%",height:"160px",objectFit:"cover",display:"block"}} onError={e=>e.target.style.display="none"}/>}
-                    <div className="prod-card-top" style={{marginTop: p.img ? 12 : 0}}>
-                      <span className={`prod-type-tag ${TAG_COLORS[p.type]||"tag-bio"}`}>{p.type}</span>
-                      {p.cert && <span className="cert-badge">✓ KNB Assured</span>}
+                    <div className="prod-img-hero">
+                      <div className="prod-img-bg" style={{backgroundImage:`url('${p.type==="Pellet"?"/images/pellet-8.jpg":"/images/briquette-5.jpg"}')`}}/>
+                      <div className="prod-img-overlay"/>
+                      {p.img && <img src={p.img} alt={p.name+" raw material"} className="prod-raw-circle" onError={e=>e.target.style.display="none"}/>}
+                      <div className={`prod-type-ribbon ${p.type==="Pellet"?"ribbon-pel":"ribbon-brq"}`}>{p.type}</div>
+                      {p.cert && <div className="prod-cert-ribbon">✓ KNB Assured</div>}
+                    </div>
+                    <div className="prod-card-top">
+                      <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:500}}>{p.loc}</span>
                     </div>
                     <div className="prod-body">
                       <div className="prod-name">{p.name}</div>
