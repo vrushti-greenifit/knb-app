@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "./firebase";
 import { signOut, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-import { doc, setDoc, getDoc, addDoc, collection } from "firebase/firestore";
+import { doc, setDoc, getDoc, addDoc, getDocs, updateDoc, collection, query, orderBy } from "firebase/firestore";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap');`;
@@ -771,6 +771,42 @@ input, select, textarea { font-family: inherit; }
   .topbar { display:none; }
   .hero-trust { display:none; }
 }
+
+/* ── ADMIN PANEL ── */
+.admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px clamp(16px,3vw,48px) 80px; }
+.admin-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; flex-wrap:wrap; gap:12px; }
+.admin-title { font-family:'Bricolage Grotesque',sans-serif; font-size:26px; font-weight:800; color:var(--soil); }
+.admin-subtitle { font-size:13px; color:var(--text-muted); margin-top:3px; }
+.admin-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:28px; }
+.admin-stat { background:white; border:1px solid var(--border); border-radius:var(--r-md); padding:18px 20px; }
+.admin-stat-val { font-size:28px; font-weight:800; color:var(--soil); font-family:'Bricolage Grotesque',sans-serif; }
+.admin-stat-label { font-size:11px; color:var(--text-muted); text-transform:uppercase; letter-spacing:.8px; margin-top:2px; }
+.admin-stat-badge { display:inline-block; padding:2px 8px; border-radius:20px; font-size:10px; font-weight:700; margin-top:6px; }
+.badge-new { background:#fff3cd; color:#856404; }
+.badge-ok  { background:#d1eddd; color:#1a6b32; }
+.admin-tabs { display:flex; gap:4px; background:var(--cream); padding:4px; border-radius:var(--r-sm); }
+.admin-tab { padding:7px 20px; border-radius:6px; border:none; background:transparent; font-size:13px; font-weight:600; color:var(--text-muted); cursor:pointer; transition:all .2s; font-family:inherit; }
+.admin-tab.active { background:white; color:var(--soil); box-shadow:0 1px 4px rgba(0,0,0,0.08); }
+.admin-table-wrap { background:white; border:1px solid var(--border); border-radius:var(--r-md); overflow:hidden; }
+.admin-table { width:100%; border-collapse:collapse; font-size:13px; }
+.admin-table th { background:var(--cream); padding:10px 14px; text-align:left; font-size:11px; font-weight:700; color:var(--text-muted); text-transform:uppercase; letter-spacing:.7px; border-bottom:1px solid var(--border); white-space:nowrap; }
+.admin-table td { padding:12px 14px; border-bottom:1px solid var(--border); color:var(--soil); vertical-align:middle; }
+.admin-table tr:last-child td { border-bottom:none; }
+.admin-table tr:hover td { background: #faf9f7; }
+.enq-status { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:700; }
+.enq-new     { background:#fff3cd; color:#856404; }
+.enq-handled { background:#d1eddd; color:#1a6b32; }
+.btn-handle { padding:5px 12px; border-radius:6px; border:1px solid var(--leaf); background:transparent; color:var(--leaf); font-size:11px; font-weight:700; cursor:pointer; transition:all .2s; font-family:inherit; }
+.btn-handle:hover { background:var(--leaf); color:white; }
+.admin-empty { text-align:center; padding:48px 20px; color:var(--text-muted); font-size:14px; }
+.admin-role-pill { display:inline-block; padding:2px 8px; border-radius:20px; font-size:11px; font-weight:600; }
+.role-buyer   { background:#dbeafe; color:#1e40af; }
+.role-seller  { background:#fef3c7; color:#92400e; }
+.role-other   { background:var(--cream); color:var(--earth); }
+@media(max-width:768px){
+  .admin-stats { grid-template-columns: 1fr 1fr; }
+  .admin-table th:nth-child(n+4), .admin-table td:nth-child(n+4) { display:none; }
+}
 `;
 
 /* ─── DATA ─────────────────────────────────────────────────── */
@@ -852,6 +888,13 @@ export default function KNBPlatform() {
   // ── Auth state ──
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
+
+  // ── Admin state ──
+  const ADMIN_PHONES = ["+919920657193", "+91 99206 57193"];
+  const [adminTab, setAdminTab] = useState("enquiries");
+  const [adminEnquiries, setAdminEnquiries] = useState([]);
+  const [adminUsers, setAdminUsers]         = useState([]);
+  const [adminLoading, setAdminLoading]     = useState(false);
   const [authErr, setAuthErr] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
 
@@ -906,6 +949,36 @@ export default function KNBPlatform() {
     });
     return unsub;
   }, []);
+
+  // ── Admin helpers ──
+  const isAdmin = !!(currentUser?.phoneNumber &&
+    ADMIN_PHONES.some(p => currentUser.phoneNumber.replace(/\s/g,"") === p.replace(/\s/g,"")));
+
+  const loadAdminData = async () => {
+    if (!isAdmin) return;
+    setAdminLoading(true);
+    try {
+      const [enqSnap, usrSnap] = await Promise.all([
+        getDocs(query(collection(db, "enquiries"), orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "users"),     orderBy("createdAt", "desc"))),
+      ]);
+      setAdminEnquiries(enqSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setAdminUsers(usrSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch(e) { console.error("Admin load:", e); }
+    setAdminLoading(false);
+  };
+
+  const markEnquiryHandled = async (id) => {
+    try {
+      await updateDoc(doc(db, "enquiries", id), { status: "handled" });
+      setAdminEnquiries(prev => prev.map(e => e.id === id ? { ...e, status: "handled" } : e));
+    } catch(e) { showToast("❌ Update failed"); }
+  };
+
+  // Load admin data when navigating to admin panel
+  useEffect(() => {
+    if (activeNav === "admin" && isAdmin) loadAdminData();
+  }, [activeNav, isAdmin]);
 
   // ── OTP helper ──
   const fmtPhone = (p) => {
@@ -1129,6 +1202,12 @@ export default function KNBPlatform() {
           {[["home","Home"],["products","Products"],["exchange","Exchange"],["about","About"],["contact","Contact"]].map(([id,label]) => (
             <button key={id} className={`nav-link ${activeNav===id?"active":""}`} onClick={() => navTo(id)}>{label}</button>
           ))}
+          {isAdmin && (
+            <button className={`nav-link ${activeNav==="admin"?"active":""}`} onClick={() => { setActiveNav("admin"); window.scrollTo(0,0); }}
+              style={{background: activeNav==="admin" ? "var(--soil)" : "rgba(30,19,10,0.08)", color: activeNav==="admin" ? "white" : "var(--soil)"}}>
+              ⚙ Admin
+            </button>
+          )}
         </div>
         <div className="nav-right">
           {currentUser ? (
@@ -1661,6 +1740,145 @@ export default function KNBPlatform() {
         </div>
       </section>
       </>}{/* END CONTACT */}
+
+      {/* ── ADMIN PANEL ── */}
+      {activeNav === "admin" && isAdmin && (
+        <div className="admin-wrap">
+          <div className="admin-topbar">
+            <div>
+              <div className="admin-title">⚙ Admin Panel</div>
+              <div className="admin-subtitle">KNB BioEnergy Platform — {new Date().toLocaleDateString("en-IN",{day:"numeric",month:"long",year:"numeric"})}</div>
+            </div>
+            <button className="btn-ghost" style={{fontSize:13}} onClick={loadAdminData}>
+              {adminLoading ? "Loading…" : "↻ Refresh"}
+            </button>
+          </div>
+
+          {/* Stats */}
+          <div className="admin-stats">
+            {[
+              { val: adminEnquiries.length,                                             label: "Total Enquiries",  badge: null },
+              { val: adminEnquiries.filter(e => e.status === "new").length,             label: "New / Pending",    badge: "new" },
+              { val: adminEnquiries.filter(e => e.status === "handled").length,         label: "Handled",          badge: "ok"  },
+              { val: adminUsers.length,                                                 label: "Registered Users", badge: null  },
+            ].map((s,i) => (
+              <div className="admin-stat" key={i}>
+                <div className="admin-stat-val">{s.val}</div>
+                <div className="admin-stat-label">{s.label}</div>
+                {s.badge && <div className={`admin-stat-badge badge-${s.badge}`}>{s.badge === "new" ? "Needs Action" : "Done"}</div>}
+              </div>
+            ))}
+          </div>
+
+          {/* Tabs */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:10}}>
+            <div className="admin-tabs">
+              {[["enquiries","📩 Enquiries"],["users","👤 Users"]].map(([id,label]) => (
+                <button key={id} className={`admin-tab ${adminTab===id?"active":""}`} onClick={() => setAdminTab(id)}>{label}</button>
+              ))}
+            </div>
+            <div style={{fontSize:12,color:"var(--text-muted)"}}>
+              {adminTab==="enquiries" ? `${adminEnquiries.length} total` : `${adminUsers.length} registered`}
+            </div>
+          </div>
+
+          {/* Enquiries Tab */}
+          {adminTab === "enquiries" && (
+            adminLoading ? <div className="admin-empty">Loading enquiries…</div> :
+            adminEnquiries.length === 0 ? <div className="admin-empty">No enquiries yet.</div> :
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Date</th>
+                    <th>Buyer Name</th>
+                    <th>Phone</th>
+                    <th>Product</th>
+                    <th>Quantity</th>
+                    <th>Location</th>
+                    <th>Company</th>
+                    <th>Message</th>
+                    <th>Status</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminEnquiries.map(e => (
+                    <tr key={e.id}>
+                      <td style={{whiteSpace:"nowrap",fontSize:11,color:"var(--text-muted)"}}>
+                        {e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : "—"}
+                      </td>
+                      <td style={{fontWeight:600}}>{e.name || "—"}</td>
+                      <td>
+                        <a href={`tel:${e.phone}`} style={{color:"var(--leaf)",fontWeight:600,textDecoration:"none"}}>{e.phone || "—"}</a>
+                      </td>
+                      <td style={{maxWidth:140,whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}}>{e.product || "—"}</td>
+                      <td>{e.qty || "—"}</td>
+                      <td>{e.location || "—"}</td>
+                      <td style={{color:"var(--text-muted)"}}>{e.company || "—"}</td>
+                      <td style={{maxWidth:180,fontSize:12,color:"var(--text-muted)",whiteSpace:"nowrap",overflow:"hidden",textOverflow:"ellipsis"}} title={e.message}>{e.message || "—"}</td>
+                      <td>
+                        <span className={`enq-status ${e.status === "handled" ? "enq-handled" : "enq-new"}`}>
+                          {e.status === "handled" ? "✓ Handled" : "● New"}
+                        </span>
+                      </td>
+                      <td>
+                        {e.status !== "handled" ? (
+                          <button className="btn-handle" onClick={() => markEnquiryHandled(e.id)}>Mark Done</button>
+                        ) : (
+                          <span style={{fontSize:11,color:"var(--text-muted)"}}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* Users Tab */}
+          {adminTab === "users" && (
+            adminLoading ? <div className="admin-empty">Loading users…</div> :
+            adminUsers.length === 0 ? <div className="admin-empty">No registered users yet.</div> :
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Registered</th>
+                    <th>Name</th>
+                    <th>Phone</th>
+                    <th>Role</th>
+                    <th>Company</th>
+                    <th>Email</th>
+                    <th>City</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminUsers.map(u => (
+                    <tr key={u.id}>
+                      <td style={{whiteSpace:"nowrap",fontSize:11,color:"var(--text-muted)"}}>
+                        {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : "—"}
+                      </td>
+                      <td style={{fontWeight:600}}>{u.name || "—"}</td>
+                      <td>
+                        <a href={`tel:${u.phone}`} style={{color:"var(--leaf)",fontWeight:600,textDecoration:"none"}}>{u.phone || "—"}</a>
+                      </td>
+                      <td>
+                        <span className={`admin-role-pill ${u.role==="buyer" ? "role-buyer" : u.role==="seller" ? "role-seller" : "role-other"}`}>
+                          {u.role || "—"}
+                        </span>
+                      </td>
+                      <td>{u.company || "—"}</td>
+                      <td style={{color:"var(--text-muted)",fontSize:12}}>{u.email || "—"}</td>
+                      <td style={{color:"var(--text-muted)"}}>{u.city || u.location || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* FOOTER */}
       <footer className="footer">
