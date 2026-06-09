@@ -8,34 +8,41 @@ const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bricolage+G
 
 const CSS = `
 :root {
-  --soil: #1e130a;
-  --bark: #2d1f12;
-  --earth: #4a3728;
-  --clay: #7a5c48;
-  --sand: #c4a882;
-  --wheat: #e8d5b0;
-  --cream: #f7f2ea;
-  --paper: #fdf9f3;
-  --leaf: #2e6b35;
-  --leaf-mid: #3d8b44;
-  --leaf-light: #5aad62;
-  --sage: #8fbc8f;
-  --mint: #e8f5e9;
-  --gold: #c47c1a;
-  --gold-bright: #e8960a;
-  --harvest: #f5a623;
-  --harvest-pale: #fff8ed;
-  --sky: #1a4d7a;
-  --sky-light: #e8f2fb;
+  /* ── Deep teal-black (replaces muddy browns) ── */
+  --soil: #071c18;
+  --bark: #0d2b24;
+  --earth: #183d35;
+  --clay: #2d6b5e;
+  --sand: #8ba8a1;
+  --wheat: #c8dbd8;
+  --cream: #eef6f4;
+  --paper: #f6fbfa;
+  /* ── Vibrant emerald green ── */
+  --leaf: #059669;
+  --leaf-mid: #10b981;
+  --leaf-light: #34d399;
+  --sage: #6ee7b7;
+  --mint: #ecfdf5;
+  /* ── Warm amber accent ── */
+  --gold: #d97706;
+  --gold-bright: #f59e0b;
+  --harvest: #fbbf24;
+  --harvest-pale: #fffbeb;
+  /* ── Supporting ── */
+  --sky: #0369a1;
+  --sky-light: #e0f2fe;
   --white: #ffffff;
-  --text-primary: #1e130a;
-  --text-secondary: #5c4535;
-  --text-muted: #9a7d6a;
-  --border: #e2d5c3;
-  --border-light: #f0e8da;
-  --shadow-sm: 0 1px 3px rgba(30,19,10,0.06), 0 1px 2px rgba(30,19,10,0.04);
-  --shadow-md: 0 4px 12px rgba(30,19,10,0.08), 0 2px 6px rgba(30,19,10,0.05);
-  --shadow-lg: 0 12px 32px rgba(30,19,10,0.12), 0 4px 12px rgba(30,19,10,0.08);
+  /* ── Text ── */
+  --text-primary: #0f2621;
+  --text-secondary: #2d5047;
+  --text-muted: #5f8a80;
+  /* ── Borders ── */
+  --border: #c8dbd8;
+  --border-light: #e4f0ee;
+  /* ── Shadows (cool, not brown) ── */
+  --shadow-sm: 0 1px 3px rgba(7,28,24,0.07), 0 1px 2px rgba(7,28,24,0.04);
+  --shadow-md: 0 4px 14px rgba(7,28,24,0.09), 0 2px 6px rgba(7,28,24,0.05);
+  --shadow-lg: 0 12px 36px rgba(7,28,24,0.13), 0 4px 12px rgba(7,28,24,0.08);
   --r-sm: 8px; --r-md: 12px; --r-lg: 16px; --r-xl: 20px;
 }
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -105,13 +112,13 @@ input, select, textarea { font-family: inherit; }
   background: var(--leaf); color: white; border: none; transition: all 0.2s;
   display: inline-flex; align-items: center; gap: 6px;
 }
-.btn-primary:hover { background: var(--leaf-mid); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(46,107,53,0.25); }
+.btn-primary:hover { background: var(--leaf-mid); transform: translateY(-1px); box-shadow: 0 4px 14px rgba(5,150,105,0.28); }
 .btn-harvest {
   padding: 9px 20px; border-radius: var(--r-sm); font-size: 13.5px; font-weight: 600;
   background: var(--harvest); color: var(--soil); border: none; transition: all 0.2s;
   display: inline-flex; align-items: center; gap: 6px;
 }
-.btn-harvest:hover { background: #f5b84a; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(245,166,35,0.3); }
+.btn-harvest:hover { background: #fcd34d; transform: translateY(-1px); box-shadow: 0 4px 14px rgba(251,191,36,0.3); }
 .btn-outline-leaf {
   padding: 9px 20px; border-radius: var(--r-sm); font-size: 13.5px; font-weight: 600;
   background: transparent; color: var(--leaf); border: 1.5px solid var(--leaf); transition: all 0.2s;
@@ -159,14 +166,14 @@ input, select, textarea { font-family: inherit; }
 .hero-glow {
   position: absolute; top: -200px; right: -100px;
   width: 700px; height: 700px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(46,107,53,0.18) 0%, transparent 60%);
+  background: radial-gradient(circle, rgba(5,150,105,0.22) 0%, transparent 60%);
   pointer-events: none;
 }
 .hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr clamp(320px, 35%, 440px); gap: clamp(32px, 5vw, 64px); align-items: center; width: 100%; padding-bottom: clamp(48px, 6vh, 80px); }
 .hero-left { padding-bottom: 0; }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(245,166,35,0.12); border: 1px solid rgba(245,166,35,0.25);
+  background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.28);
   color: var(--harvest); font-size: 11.5px; font-weight: 600; letter-spacing: 1.5px;
   text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 24px;
 }
@@ -197,7 +204,7 @@ input, select, textarea { font-family: inherit; }
   display: flex; align-items: center; gap: 14px;
 }
 .role-card-hero:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); transform: translateX(4px); }
-.role-card-hero.selected { background: rgba(46,107,53,0.2); border-color: rgba(46,107,53,0.5); }
+.role-card-hero.selected { background: rgba(5,150,105,0.2); border-color: rgba(5,150,105,0.5); }
 .rch-icon { font-size: 26px; flex-shrink: 0; }
 .rch-label { font-size: 15px; font-weight: 600; color: white; line-height: 1.2; }
 .rch-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
@@ -304,8 +311,8 @@ input, select, textarea { font-family: inherit; }
   font-size: 9.5px; font-weight: 800; letter-spacing: 2px; text-transform: uppercase;
   padding: 4px 10px; border-radius: 20px;
 }
-.ribbon-brq { background: rgba(196,124,26,0.92); color: white; }
-.ribbon-pel { background: rgba(46,107,53,0.92); color: white; }
+.ribbon-brq { background: rgba(217,119,6,0.92); color: white; }
+.ribbon-pel { background: rgba(5,150,105,0.92); color: white; }
 .prod-cert-ribbon {
   position: absolute; top: 12px; right: 12px; z-index: 3;
   font-size: 9px; font-weight: 700; background: rgba(255,255,255,0.92);
@@ -330,13 +337,13 @@ input, select, textarea { font-family: inherit; }
 .type-intro-label { font-family: 'Bricolage Grotesque',sans-serif; font-size: 18px; font-weight: 800; color: white; line-height: 1.1; }
 .type-intro-desc { font-size: 11.5px; color: rgba(255,255,255,0.75); margin-top: 3px; line-height: 1.5; }
 .type-intro-tag { display:inline-block; font-size:9px; font-weight:700; letter-spacing:1.5px; text-transform:uppercase; padding:3px 8px; border-radius:20px; margin-bottom:6px; }
-.tag-brq-dark { background:rgba(196,124,26,0.9); color:white; }
-.tag-pel-dark { background:rgba(46,107,53,0.9); color:white; }
+.tag-brq-dark { background:rgba(217,119,6,0.9); color:white; }
+.tag-pel-dark { background:rgba(5,150,105,0.9); color:white; }
 .prod-type-tag {
   font-size: 10.5px; font-weight: 700; letter-spacing: 1px; text-transform: uppercase;
   padding: 4px 9px; border-radius: 5px;
 }
-.tag-brq { background: #fff3e0; color: #c47c1a; }
+.tag-brq { background: #fffbeb; color: var(--gold); }
 .tag-pel { background: var(--mint); color: var(--leaf); }
 .tag-raw { background: #fce4ec; color: #c2185b; }
 .tag-bio { background: var(--sky-light); color: var(--sky); }
@@ -378,7 +385,7 @@ input, select, textarea { font-family: inherit; }
 .farmer-text p { font-size: 15.5px; color: rgba(255,255,255,0.6); line-height: 1.75; margin-bottom: 28px; }
 .farmer-benefits { display: flex; flex-direction: column; gap: 14px; margin-bottom: 32px; }
 .farmer-benefit { display: flex; align-items: flex-start; gap: 12px; }
-.fb-icon { width: 36px; height: 36px; background: rgba(245,166,35,0.15); border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; margin-top: 2px; }
+.fb-icon { width: 36px; height: 36px; background: rgba(251,191,36,0.15); border-radius: var(--r-sm); display: flex; align-items: center; justify-content: center; font-size: 17px; flex-shrink: 0; margin-top: 2px; }
 .fb-title { font-size: 14px; font-weight: 600; color: white; }
 .fb-desc { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 2px; }
 .farmer-register-card {
@@ -404,14 +411,14 @@ input, select, textarea { font-family: inherit; }
   background: rgba(255,255,255,0.04); color: rgba(255,255,255,0.6); font-size: 11.5px;
   font-weight: 500; text-align: center; cursor: pointer; transition: all 0.15s;
 }
-.biomass-opt:hover { border-color: rgba(245,166,35,0.4); color: white; }
-.biomass-opt.sel { background: rgba(245,166,35,0.15); border-color: var(--harvest); color: var(--harvest); }
+.biomass-opt:hover { border-color: rgba(251,191,36,0.4); color: white; }
+.biomass-opt.sel { background: rgba(251,191,36,0.15); border-color: var(--harvest); color: var(--harvest); }
 
 /* ── EXCHANGE / PRICES ── */
 .exchange-section { background: var(--cream); }
 .ex-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
 .live-pill { display: flex; align-items: center; gap: 7px; background: white; border: 1px solid var(--border); border-radius: 20px; padding: 7px 14px; font-size: 12px; color: var(--text-secondary); }
-.live-dot { width: 7px; height: 7px; background: #4caf80; border-radius: 50%; animation: pulse 1.5s infinite; }
+.live-dot { width: 7px; height: 7px; background: #10b981; border-radius: 50%; animation: pulse 1.5s infinite; }
 .ex-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin-bottom: 24px; }
 .ex-card {
   background: white; border-radius: var(--r-lg); border: 1px solid var(--border);
@@ -480,7 +487,7 @@ input, select, textarea { font-family: inherit; }
   width: 50px; height: 50px; border-radius: 50%; font-family: 'Bricolage Grotesque', sans-serif;
   font-weight: 800; font-size: 20px; margin-bottom: 14px;
 }
-.grade-Aplus .grade-head { background: linear-gradient(135deg, #e8f5e9, #f1f8f2); }
+.grade-Aplus .grade-head { background: linear-gradient(135deg, #ecfdf5, #f0fdf8); }
 .grade-Aplus .grade-mark { background: var(--leaf); color: white; }
 .grade-Aplus { border-color: var(--leaf); }
 .grade-A .grade-head { background: linear-gradient(135deg, #e3f2fd, #f0f7ff); }
@@ -617,7 +624,7 @@ input, select, textarea { font-family: inherit; }
 /* Deal Feed */
 .deal-panel { padding:12px; overflow:hidden; }
 .deal-title { font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
-.deal-title::before { content:''; width:6px; height:6px; border-radius:50%; background:#4caf80; animation:pulse 1.2s infinite; }
+.deal-title::before { content:''; width:6px; height:6px; border-radius:50%; background:#10b981; animation:pulse 1.2s infinite; }
 .deal-row { padding:6px 8px; border-radius:6px; margin-bottom:4px; animation:deal-in 0.35s ease; border-left:2px solid; }
 .deal-row.buy { background:rgba(39,174,96,0.09); border-color:#27ae60; }
 .deal-row.sell { background:rgba(231,76,60,0.09); border-color:#e74c3c; }
@@ -685,7 +692,7 @@ input, select, textarea { font-family: inherit; }
 .cta-bottom::before {
   content: ''; position: absolute; top: -50%; left: -20%;
   width: 800px; height: 800px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(46,107,53,0.12), transparent 60%);
+  background: radial-gradient(circle, rgba(5,150,105,0.14), transparent 60%);
   pointer-events: none;
 }
 .cta-bottom h2 { font-family: 'Bricolage Grotesque', sans-serif; font-size: clamp(32px,4vw,56px); font-weight: 800; color: white; letter-spacing: -1px; margin-bottom: 16px; line-height: 1.1; }
@@ -695,7 +702,7 @@ input, select, textarea { font-family: inherit; }
 .cta-note { font-size: 12px; color: rgba(255,255,255,0.3); }
 
 /* ── FOOTER ── */
-.footer { background: #0d0905; padding: 64px clamp(20px, 4vw, 48px) 32px; width: 100%; }
+.footer { background: #040f0c; padding: 64px clamp(20px, 4vw, 48px) 32px; width: 100%; }
 .footer-inner { max-width: 1100px; margin: 0 auto; width: 100%; }
 .footer-top { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 48px; margin-bottom: 48px; }
 .ft-brand { }
@@ -751,7 +758,7 @@ input, select, textarea { font-family: inherit; }
 .btn-submit { flex: 2; padding: 12px; border-radius: var(--r-sm); border: none; background: var(--leaf); color: white; cursor: pointer; font-size: 14px; font-weight: 600; font-family: inherit; transition: all 0.15s; }
 .btn-submit:hover { background: var(--leaf-mid); }
 .btn-submit.harvest { background: var(--harvest); color: var(--soil); }
-.btn-submit.harvest:hover { background: #f5b84a; }
+.btn-submit.harvest:hover { background: #fcd34d; }
 .btn-submit.sky { background: var(--sky); }
 .role-selector-btns { display: flex; flex-direction: column; gap: 10px; margin-bottom: 24px; }
 .role-sel-btn {
@@ -823,7 +830,7 @@ input, select, textarea { font-family: inherit; }
 .fsb-search input { border: none; outline: none; font-size: 13px; width: 100%; background: transparent; font-family: inherit; color: var(--soil); }
 .fsb-count { font-size: 11px; color: var(--text-muted); text-align: center; padding-top: 12px; border-top: 1px solid var(--border); }
 .products-main { flex: 1; min-width: 0; }
-.btn-call-sm { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--mint); border:1px solid rgba(46,107,53,0.2); font-size:16px; text-decoration:none; transition:all .2s; flex-shrink:0; }
+.btn-call-sm { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--mint); border:1px solid rgba(5,150,105,0.2); font-size:16px; text-decoration:none; transition:all .2s; flex-shrink:0; }
 .btn-call-sm:hover { background: var(--leaf); }
 @media(max-width: 768px) {
   .products-layout { flex-direction: column; }
@@ -1337,7 +1344,7 @@ export default function KNBPlatform() {
           ))}
           {isAdmin && (
             <button className={`nav-link ${activeNav==="admin"?"active":""}`} onClick={() => { setActiveNav("admin"); window.scrollTo(0,0); }}
-              style={{background: activeNav==="admin" ? "var(--soil)" : "rgba(30,19,10,0.08)", color: activeNav==="admin" ? "white" : "var(--soil)"}}>
+              style={{background: activeNav==="admin" ? "var(--soil)" : "rgba(7,28,24,0.07)", color: activeNav==="admin" ? "white" : "var(--soil)"}}>
               ⚙ Admin
             </button>
           )}
@@ -1346,7 +1353,7 @@ export default function KNBPlatform() {
           {currentUser ? (
             <>
               <button className="btn-ghost" style={{fontSize:12,padding:"6px 12px"}} onClick={() => setModal("myorders")}>📦 My Orders</button>
-              <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid rgba(46,107,53,0.15)",cursor:"pointer"}} onClick={() => setModal("myorders")}>
+              <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid rgba(5,150,105,0.15)",cursor:"pointer"}} onClick={() => setModal("myorders")}>
                 <div style={{width:26,height:26,borderRadius:"50%",background:"var(--leaf)",color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>
                   {(userProfile?.name || "U")[0].toUpperCase()}
                 </div>
@@ -1692,10 +1699,10 @@ export default function KNBPlatform() {
                 <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`} onClick={()=>setSelectedPrice(p)} style={{cursor:"pointer"}}>
                   <div className="t-short">{p.short}</div>
                   <div className="t-name">{p.name}</div>
-                  <div className="t-price-big" style={{color:"#f5a623"}}>₹{adjPrice(p.price).toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"rgba(255,255,255,0.4)"}}>/MT</span></div>
+                  <div className="t-price-big" style={{color:"var(--harvest)"}}>₹{adjPrice(p.price).toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"rgba(255,255,255,0.4)"}}>/MT</span></div>
                   <div className="t-ohlc" style={{marginTop:8}}>
                     <div className="t-ohlc-item"><div className="t-ohlc-k">Cal. Value</div><div className="t-ohlc-v">{p.cal} kcal/kg</div></div>
-                    <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"#f5a623"}}>{p.grade.split("·")[0].trim()}</div></div>
+                    <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"var(--harvest)"}}>{p.grade.split("·")[0].trim()}</div></div>
                   </div>
                   <div className="t-bid-ask" style={{marginTop:10}}>
                     <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(adjPrice(p.price)-Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
@@ -2001,7 +2008,7 @@ export default function KNBPlatform() {
             <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>Certified & Compliant</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:10,justifyContent:"center"}}>
               {["Lab Certified","Greenifit Verified","Verra VCS","Gold Standard","CCTS Ready","BEE PAT","ISO 9001"].map(b => (
-                <span key={b} style={{background:"var(--mint)",color:"var(--leaf)",fontSize:11.5,fontWeight:600,padding:"5px 12px",borderRadius:20,border:"1px solid rgba(46,107,53,0.2)"}}>{b}</span>
+                <span key={b} style={{background:"var(--mint)",color:"var(--leaf)",fontSize:11.5,fontWeight:600,padding:"5px 12px",borderRadius:20,border:"1px solid rgba(5,150,105,0.2)"}}>{b}</span>
               ))}
             </div>
           </div>
@@ -2270,7 +2277,7 @@ export default function KNBPlatform() {
                   </>
                 ) : (
                   <>
-                    <div style={{background:"var(--mint)",border:"1px solid rgba(46,107,53,0.2)",borderRadius:8,padding:"10px 14px",fontSize:13,color:"var(--leaf)",marginBottom:16}}>
+                    <div style={{background:"var(--mint)",border:"1px solid rgba(5,150,105,0.2)",borderRadius:8,padding:"10px 14px",fontSize:13,color:"var(--leaf)",marginBottom:16}}>
                       ✓ OTP sent! Check your SMS messages.
                     </div>
                     <div className="mf">
@@ -2427,7 +2434,7 @@ export default function KNBPlatform() {
                 {/* ─ Step 2: OTP Verification ─ */}
                 {regStep === 2 && (
                   <div>
-                    <div style={{background:"var(--mint)",border:"1px solid rgba(46,107,53,0.2)",borderRadius:8,padding:"10px 14px",fontSize:13,color:"var(--leaf)",marginBottom:20}}>
+                    <div style={{background:"var(--mint)",border:"1px solid rgba(5,150,105,0.2)",borderRadius:8,padding:"10px 14px",fontSize:13,color:"var(--leaf)",marginBottom:20}}>
                       ✓ OTP sent to +91 {regPhone} · Check your SMS
                     </div>
                     <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}>
@@ -2462,7 +2469,7 @@ export default function KNBPlatform() {
                   <button className="modal-close" onClick={() => setModal(null)}>×</button>
                 </div>
                 {currentUser && userProfile && (
-                  <div style={{background:"var(--mint)",border:"1px solid rgba(46,107,53,0.2)",borderRadius:8,padding:"8px 12px",marginBottom:12,fontSize:12,color:"var(--leaf)",display:"flex",gap:8,alignItems:"center"}}>
+                  <div style={{background:"var(--mint)",border:"1px solid rgba(5,150,105,0.2)",borderRadius:8,padding:"8px 12px",marginBottom:12,fontSize:12,color:"var(--leaf)",display:"flex",gap:8,alignItems:"center"}}>
                     ✓ Logged in as <strong>{userProfile.name}</strong> · form pre-filled
                   </div>
                 )}
@@ -2510,7 +2517,7 @@ export default function KNBPlatform() {
       {/* ── PRICE CHART MODAL ── */}
       {selectedPrice && (
         <div onClick={()=>setSelectedPrice(null)} style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.88)",zIndex:3000,display:"flex",alignItems:"center",justifyContent:"center",padding:"20px"}}>
-          <div onClick={e=>e.stopPropagation()} style={{background:"#2d1f12",border:"1px solid rgba(255,255,255,0.1)",borderRadius:18,padding:28,maxWidth:680,width:"100%",maxHeight:"92vh",overflowY:"auto"}}>
+          <div onClick={e=>e.stopPropagation()} style={{background:"#0d2b24",border:"1px solid rgba(255,255,255,0.1)",borderRadius:18,padding:28,maxWidth:680,width:"100%",maxHeight:"92vh",overflowY:"auto"}}>
 
             {/* Header */}
             <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:20}}>
@@ -2519,7 +2526,7 @@ export default function KNBPlatform() {
                 <div style={{fontSize:22,fontWeight:700,color:"white",lineHeight:1.2}}>{selectedPrice.name}</div>
               </div>
               <div style={{textAlign:"right"}}>
-                <div style={{fontSize:30,fontWeight:800,fontFamily:"'Bricolage Grotesque',sans-serif",color:"#f5a623",lineHeight:1}}>₹{selectedPrice.price.toLocaleString("en-IN")}</div>
+                <div style={{fontSize:30,fontWeight:800,fontFamily:"'Bricolage Grotesque',sans-serif",color:"var(--harvest)",lineHeight:1}}>₹{selectedPrice.price.toLocaleString("en-IN")}</div>
                 <div style={{fontSize:11,color:"rgba(255,255,255,0.35)",marginTop:2}}>per Metric Tonne</div>
               </div>
             </div>
@@ -2541,7 +2548,7 @@ export default function KNBPlatform() {
               {[["Open","₹"+selectedPrice.open.toLocaleString("en-IN"),null],
                 ["High","₹"+selectedPrice.high.toLocaleString("en-IN"),"#27ae60"],
                 ["Low","₹"+selectedPrice.low.toLocaleString("en-IN"),"#e74c3c"],
-                ["Cal. Value",selectedPrice.cal+" kcal/kg","#f5a623"]
+                ["Cal. Value",selectedPrice.cal+" kcal/kg","var(--harvest)"]
               ].map(([k,v,c])=>(
                 <div key={k} style={{background:"rgba(255,255,255,0.04)",borderRadius:8,padding:"10px 12px"}}>
                   <div style={{fontSize:9,color:"rgba(255,255,255,0.28)",textTransform:"uppercase",letterSpacing:"0.8px",marginBottom:5}}>{k}</div>
