@@ -939,6 +939,9 @@ export default function KNBPlatform() {
     try { window._knbCaptcha?.clear(); } catch(_) {}
     window._knbCaptcha = null;
     captchaRef.current = null;
+    // Manually wipe the container so the next RecaptchaVerifier can render fresh
+    const el = document.getElementById("recaptcha-root");
+    if (el) el.innerHTML = "";
   };
 
   const makeVerifier = () => {
