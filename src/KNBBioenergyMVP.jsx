@@ -775,21 +775,31 @@ input, select, textarea { font-family: inherit; }
 
 /* ─── DATA ─────────────────────────────────────────────────── */
 const PRODUCTS = [
-  // BRIQUETTES
-  { id:1, type:"Briquette", name:"Soyabean Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,400", moist:"6%", ash:"15-20%", density:"580 kg/m³", price:"5,200", moq:"10 MT", cert:true, carbon:"1.9", img:"/images/soyabean-briquette.jpg" },
-  { id:2, type:"Briquette", name:"Groundnut Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"8-10%", density:"600 kg/m³", price:"5,800", moq:"10 MT", cert:true, carbon:"2.1", img:"/images/groundnut-briquette.jpg" },
-  { id:3, type:"Briquette", name:"Mustard Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"6%", ash:"10-15%", density:"580 kg/m³", price:"5,400", moq:"10 MT", cert:true, carbon:"2.0", img:"/images/mustard-briquette.jpg" },
-  { id:4, type:"Briquette", name:"Rice Husk Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,500", moist:"8%", ash:"20%", density:"560 kg/m³", price:"4,800", moq:"15 MT", cert:true, carbon:"1.9", img:"/images/ricehusk-briquette.jpg" },
-  { id:5, type:"Briquette", name:"Sawdust Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"10%", density:"620 kg/m³", price:"6,500", moq:"5 MT", cert:true, carbon:"2.4", img:"/images/sawdust-briquette.jpg" },
-  { id:6, type:"Briquette", name:"Agro Waste Briquettes", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"7%", ash:"12-15%", density:"580 kg/m³", price:"5,600", moq:"10 MT", cert:true, carbon:"2.1", img:"/images/agrowaste-briquette.jpg" },
-  // PELLETS
-  { id:7, type:"Pellet", name:"Soyabean Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,600", moist:"5%", ash:"5-6%", density:"640 kg/m³", price:"6,200", moq:"5 MT", cert:true, carbon:"2.0", img:"/images/soyabean-pellet.jpg" },
-  { id:8, type:"Pellet", name:"Groundnut Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"6-8%", density:"650 kg/m³", price:"7,200", moq:"5 MT", cert:true, carbon:"2.3", img:"/images/groundnut-pellet.jpg" },
-  { id:9, type:"Pellet", name:"Mustard Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,800", moist:"5%", ash:"6-8%", density:"640 kg/m³", price:"6,800", moq:"5 MT", cert:true, carbon:"2.1", img:"/images/mustard-pellet.jpg" },
-  { id:10, type:"Pellet", name:"Rice Husk Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"3,700", moist:"5%", ash:"20%", density:"620 kg/m³", price:"6,000", moq:"10 MT", cert:true, carbon:"2.0", img:"/images/ricehusk-pellet.jpg" },
-  { id:11, type:"Pellet", name:"Sawdust Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,200", moist:"5%", ash:"5-6%", density:"660 kg/m³", price:"7,800", moq:"5 MT", cert:true, carbon:"2.4", img:"/images/sawdust-pellet.jpg" },
-  { id:12, type:"Pellet", name:"Agro Waste Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,000", moist:"5%", ash:"7-8%", density:"645 kg/m³", price:"7,000", moq:"5 MT", cert:true, carbon:"2.3", img:"/images/agrowaste-pellet.jpg" },
-  { id:13, type:"Pellet", name:"Pinewood Pellets", seller:"KNB Green Energy Ltd", loc:"Akola, MH", cal:"4,300", moist:"5%", ash:"2-3%", density:"680 kg/m³", price:"9,500", moq:"2 MT", cert:true, carbon:"2.6", img:"/images/pinewood-pellet.jpg" },
+  // ── KNB Green Energy Ltd — Akola, MH ──
+  { id:1,  type:"Briquette", name:"Soyabean Briquettes",    seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,400", moist:"6%",  ash:"15-20%", price:"5,200", moq:"10 MT", cert:true,  carbon:"1.9", img:"/images/soyabean-briquette.jpg" },
+  { id:2,  type:"Briquette", name:"Groundnut Briquettes",   seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,800", moist:"5%",  ash:"8-10%",  price:"5,800", moq:"10 MT", cert:true,  carbon:"2.1", img:"/images/groundnut-briquette.jpg" },
+  { id:3,  type:"Briquette", name:"Mustard Briquettes",     seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,500", moist:"6%",  ash:"10-15%", price:"5,400", moq:"10 MT", cert:true,  carbon:"2.0", img:"/images/mustard-briquette.jpg" },
+  { id:4,  type:"Briquette", name:"Rice Husk Briquettes",   seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,500", moist:"8%",  ash:"20%",    price:"4,800", moq:"15 MT", cert:true,  carbon:"1.9", img:"/images/ricehusk-briquette.jpg" },
+  { id:5,  type:"Briquette", name:"Sawdust Briquettes",     seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"4,200", moist:"5%",  ash:"10%",    price:"6,500", moq:"5 MT",  cert:true,  carbon:"2.4", img:"/images/sawdust-briquette.jpg" },
+  { id:6,  type:"Briquette", name:"Agro Waste Briquettes",  seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,800", moist:"7%",  ash:"12-15%", price:"5,600", moq:"10 MT", cert:true,  carbon:"2.1", img:"/images/agrowaste-briquette.jpg" },
+  { id:7,  type:"Pellet",    name:"Soyabean Pellets",       seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,600", moist:"5%",  ash:"5-6%",   price:"6,200", moq:"5 MT",  cert:true,  carbon:"2.0", img:"/images/soyabean-pellet.jpg" },
+  { id:8,  type:"Pellet",    name:"Groundnut Pellets",      seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"4,000", moist:"5%",  ash:"6-8%",   price:"7,200", moq:"5 MT",  cert:true,  carbon:"2.3", img:"/images/groundnut-pellet.jpg" },
+  { id:9,  type:"Pellet",    name:"Mustard Pellets",        seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,800", moist:"5%",  ash:"6-8%",   price:"6,800", moq:"5 MT",  cert:true,  carbon:"2.1", img:"/images/mustard-pellet.jpg" },
+  { id:10, type:"Pellet",    name:"Rice Husk Pellets",      seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,700", moist:"5%",  ash:"20%",    price:"6,000", moq:"10 MT", cert:true,  carbon:"2.0", img:"/images/ricehusk-pellet.jpg" },
+  { id:11, type:"Pellet",    name:"Sawdust Pellets",        seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"4,200", moist:"5%",  ash:"5-6%",   price:"7,800", moq:"5 MT",  cert:true,  carbon:"2.4", img:"/images/sawdust-pellet.jpg" },
+  { id:12, type:"Pellet",    name:"Agro Waste Pellets",     seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"4,000", moist:"5%",  ash:"7-8%",   price:"7,000", moq:"5 MT",  cert:true,  carbon:"2.3", img:"/images/agrowaste-pellet.jpg" },
+  { id:13, type:"Pellet",    name:"Pinewood Pellets",       seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"4,300", moist:"5%",  ash:"2-3%",   price:"9,500", moq:"2 MT",  cert:true,  carbon:"2.6", img:"/images/pinewood-pellet.jpg" },
+
+  // ── Other Verified Suppliers ──
+  { id:14, type:"Briquette", name:"Cotton Stalk Briquettes", seller:"Suraj Bioenergy Pvt Ltd",  loc:"Amravati, MH",    cal:"3,600", moist:"7%",  ash:"14-16%", price:"5,100", moq:"10 MT", cert:true,  carbon:"2.0", img:"/images/agrowaste-briquette.jpg" },
+  { id:15, type:"Briquette", name:"Sugarcane Bagasse Briquettes", seller:"Punjab Agro Fuels",   loc:"Ludhiana, PB",    cal:"3,200", moist:"9%",  ash:"8-12%",  price:"4,500", moq:"20 MT", cert:false, carbon:"1.8", img:"/images/agrowaste-briquette.jpg" },
+  { id:16, type:"Pellet",    name:"Wheat Straw Pellets",    seller:"Punjab Agro Fuels",          loc:"Ludhiana, PB",    cal:"3,500", moist:"6%",  ash:"8-10%",  price:"5,800", moq:"5 MT",  cert:false, carbon:"1.9", img:"/images/ricehusk-pellet.jpg" },
+  { id:17, type:"Briquette", name:"Bamboo Briquettes",      seller:"Green Flame Industries",     loc:"Nagpur, MH",      cal:"4,000", moist:"6%",  ash:"5-8%",   price:"6,200", moq:"5 MT",  cert:true,  carbon:"2.2", img:"/images/sawdust-briquette.jpg" },
+  { id:18, type:"Pellet",    name:"Bamboo Pellets",         seller:"Green Flame Industries",     loc:"Nagpur, MH",      cal:"4,100", moist:"5%",  ash:"4-6%",   price:"7,400", moq:"5 MT",  cert:true,  carbon:"2.3", img:"/images/sawdust-pellet.jpg" },
+  { id:19, type:"Briquette", name:"Maize Cob Briquettes",   seller:"Vidarbha Biomass Co.",       loc:"Yavatmal, MH",    cal:"3,700", moist:"7%",  ash:"3-5%",   price:"5,300", moq:"10 MT", cert:false, carbon:"2.0", img:"/images/agrowaste-briquette.jpg" },
+  { id:20, type:"Pellet",    name:"Groundnut Shell Pellets", seller:"Rajkot Fuel Solutions",     loc:"Rajkot, GJ",      cal:"4,200", moist:"5%",  ash:"5-7%",   price:"7,500", moq:"5 MT",  cert:true,  carbon:"2.4", img:"/images/groundnut-pellet.jpg" },
+  { id:21, type:"Raw Biomass", name:"Cotton Stalks (Loose)", seller:"Suraj Bioenergy Pvt Ltd",  loc:"Amravati, MH",    cal:"3,200", moist:"10%", ash:"16-18%", price:"2,800", moq:"25 MT", cert:false, carbon:"1.6", img:"/images/agrowaste-briquette.jpg" },
+  { id:22, type:"Raw Biomass", name:"Rice Husk (Loose)",    seller:"Punjab Agro Fuels",          loc:"Ludhiana, PB",    cal:"3,000", moist:"10%", ash:"18-22%", price:"2,200", moq:"50 MT", cert:false, carbon:"1.5", img:"/images/ricehusk-briquette.jpg" },
 ];
 
 const INIT_PRICES = [
@@ -1227,9 +1237,9 @@ export default function KNBPlatform() {
         <div className="section-narrow">
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:32}}>
             <div>
-              <div className="section-kicker">Our Products</div>
-              <div className="section-h2">Trusted <em>Biomass Products</em></div>
-              <div className="section-desc">Lab-tested briquettes & pellets. 300+ tons/day. Direct from manufacturer.</div>
+              <div className="section-kicker">Marketplace Preview</div>
+              <div className="section-h2">Browse <em>Biomass Products</em></div>
+              <div className="section-desc">Briquettes, pellets & raw biomass from verified suppliers across India. 22 products · 6 suppliers listed.</div>
             </div>
             <button className="btn-harvest" onClick={() => navTo("products")}>View All Products →</button>
           </div>
@@ -1265,7 +1275,7 @@ export default function KNBPlatform() {
             ))}
           </div>
           <div style={{textAlign:"center",marginTop:32}}>
-            <button className="btn-ghost" style={{padding:"13px 40px",fontSize:15}} onClick={() => navTo("products")}>Browse All 13 Products →</button>
+            <button className="btn-ghost" style={{padding:"13px 40px",fontSize:15}} onClick={() => navTo("products")}>Browse All Products →</button>
           </div>
         </div>
       </section>
@@ -1291,9 +1301,9 @@ export default function KNBPlatform() {
         <div className="section-narrow">
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:24}}>
             <div>
-              <div className="section-kicker">All Products</div>
-              <div className="section-h2">KNB <em>Product Catalog</em></div>
-              <div className="section-desc">Every product is lab-tested. NABL certified. Direct from our manufacturing plant in Akola, MH.</div>
+              <div className="section-kicker">Marketplace</div>
+              <div className="section-h2">Biomass <em>Product Marketplace</em></div>
+              <div className="section-desc">Products listed by verified suppliers across India. NABL certified. Direct from manufacturers.</div>
             </div>
             <button className="btn-harvest" onClick={() => setModal("choose-role")}>+ Get Quote</button>
           </div>
@@ -1349,7 +1359,11 @@ export default function KNBPlatform() {
                       {p.cert && <div className="prod-cert-ribbon">✓ KNB Assured</div>}
                     </div>
                     <div className="prod-card-top">
-                      <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:500}}>{p.loc}</span>
+                      <div>
+                        <div style={{fontSize:12,fontWeight:700,color:"var(--soil)"}}>{p.seller}</div>
+                        <div style={{fontSize:11,color:"var(--text-muted)",marginTop:1}}>📍 {p.loc}</div>
+                      </div>
+                      {p.seller==="KNB Green Energy Ltd" && <span style={{fontSize:9,fontWeight:800,background:"var(--leaf)",color:"white",padding:"3px 7px",borderRadius:20,letterSpacing:"0.5px",whiteSpace:"nowrap"}}>KNB ★</span>}
                     </div>
                     <div className="prod-body">
                       <div className="prod-name">{p.name}</div>
