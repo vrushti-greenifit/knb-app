@@ -850,7 +850,7 @@ const INIT_PRICES = [
 
 const BIOMASS_TYPES = ["Soyabean Husk","Rice","Corn Cob","Agro Waste Mix","Mustard","Sawdust","Groundnut","Other"];
 
-const TAG_COLORS = { Briquette:"tag-brq", Pellet:"tag-pel", "Raw Biomass":"tag-raw", Biochar:"tag-char" };
+const TAG_COLORS = { Briquette:"tag-brq", Pellet:"tag-pel", "Raw Biomass":"tag-raw" };
 
 /* ─── MAIN COMPONENT ───────────────────────────────────────── */
 export default function KNBPlatform() {
@@ -1274,7 +1274,7 @@ export default function KNBPlatform() {
                 {[
                   { role:"farmer", icon:"🌾", label:"Farmer / Raw Material Producer", sub:"I produce agricultural biomass & want to sell", color:"harvest" },
                   { role:"supplier", icon:"🏭", label:"Supplier / Manufacturer", sub:"I produce briquettes, pellets or processed biomass", color:"green" },
-                  { role:"buyer", icon:"🏗️", label:"Industrial Buyer", sub:"I need bulk biomass for my factory or plant", color:"blue" },
+                  { role:"buyer", icon:"🏗️", label:"Industry Buyer", sub:"I need bulk biomass for my factory or plant", color:"blue" },
                 ].map(r => (
                   <div key={r.role} className={`role-card-hero ${selectedHeroRole===r.role?"selected":""}`}
                     onClick={() => { setSelectedHeroRole(r.role); openRegister(r.role); }}>
@@ -1326,7 +1326,7 @@ export default function KNBPlatform() {
                   {p.cert && <div className="prod-cert-ribbon">✓ KNB Assured</div>}
                 </div>
                 <div className="prod-card-top">
-                  <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:500}}>{p.loc}</span>
+                  <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:500}}>📍 {p.loc}</span>
                 </div>
                 <div className="prod-body">
                   <div className="prod-name">{p.name}</div>
@@ -1431,11 +1431,8 @@ export default function KNBPlatform() {
                       {p.cert && <div className="prod-cert-ribbon">✓ KNB Assured</div>}
                     </div>
                     <div className="prod-card-top">
-                      <div>
-                        <div style={{fontSize:12,fontWeight:700,color:"var(--soil)"}}>{p.seller}</div>
-                        <div style={{fontSize:11,color:"var(--text-muted)",marginTop:1}}>📍 {p.loc}</div>
-                      </div>
-                      {p.seller==="KNB Green Energy Ltd" && <span style={{fontSize:9,fontWeight:800,background:"var(--leaf)",color:"white",padding:"3px 7px",borderRadius:20,letterSpacing:"0.5px",whiteSpace:"nowrap"}}>KNB ★</span>}
+                      <span style={{fontSize:11,color:"var(--text-muted)",fontWeight:500}}>📍 {p.loc}</span>
+                      {p.cert && <span style={{fontSize:9,fontWeight:800,background:"var(--leaf)",color:"white",padding:"3px 7px",borderRadius:20,letterSpacing:"0.5px",whiteSpace:"nowrap"}}>✓ KNB Assured</span>}
                     </div>
                     <div className="prod-body">
                       <div className="prod-name">{p.name}</div>
@@ -1689,7 +1686,7 @@ export default function KNBPlatform() {
               <div style={{fontWeight:700,fontSize:16,color:"var(--soil)",marginBottom:4}}>What do you need?</div>
               {[
                 {icon:"📦",title:"Get a Bulk Quote",sub:"Tell us the product & quantity. We'll send pricing within 24 hrs.",action:()=>{setModal("enquiry");setEnquiryProduct({name:"Bulk Order",price:"—"});}},
-                {icon:"🏭",title:"Register as a Buyer",sub:"Create your buyer account to access the full platform.",action:()=>openRegister("buyer")},
+                {icon:"🏗️",title:"Register as Industry Buyer",sub:"Create your buyer account to access the full platform.",action:()=>openRegister("buyer")},
                 {icon:"🌿",title:"Carbon Credits Query",sub:"Learn how KNB credits can help your ESG & BRSR reporting.",action:()=>{setModal("enquiry");setEnquiryProduct({name:"Carbon Credit Registration",price:"—"});}},
                 {icon:"💼",title:"Partnership / Distributor",sub:"Interested in distributing KNB products in your region?",action:()=>{setModal("enquiry");setEnquiryProduct({name:"Partnership Enquiry",price:"—"});}}
               ].map(({icon,title,sub,action}) => (
@@ -1893,7 +1890,7 @@ export default function KNBPlatform() {
             </div>
             <div className="ft-col">
               <h4>Platform</h4>
-              {["Marketplace","Spot Exchange","Certification","Carbon Credits","Forward Contracts"].map(l => <div key={l} className="ft-link">{l}</div>)}
+              {["Marketplace","Spot Exchange","Certification","Carbon Credits"].map(l => <div key={l} className="ft-link">{l}</div>)}
             </div>
             <div className="ft-col">
               <h4>For You</h4>
@@ -1981,7 +1978,7 @@ export default function KNBPlatform() {
                 <div className="role-selector-btns">
                   {[
                     {role:"farmer",icon:"🌾",label:"I'm a Farmer / Raw Material Producer",desc:"Sell agricultural residue & biomass directly to processors"},
-                    {role:"supplier",icon:"🏭",label:"I'm a Supplier / Manufacturer",desc:"List processed biomass products: briquettes, pellets, biochar"},
+                    {role:"supplier",icon:"🏭",label:"I'm a Supplier / Manufacturer",desc:"List processed biomass products: briquettes & pellets"},
                     {role:"buyer",icon:"🏗️",label:"I'm an Industry Buyer",desc:"Source verified biomass fuel for my factory or plant"},
                   ].map(r => (
                     <button key={r.role} className="role-sel-btn" onClick={() => openRegister(r.role)}>
@@ -2004,7 +2001,7 @@ export default function KNBPlatform() {
                       {{farmer:"🌾 Join as Farmer",supplier:"🏭 Join as Supplier",buyer:"🏗️ Join as Buyer"}[regRole]}
                     </div>
                     <div className={`modal-sub ${regRole==="farmer"?"light":""}`}>
-                      Step {regStep} of 2 · {regRole==="buyer"?"Industrial Buyer":regRole==="supplier"?"Supplier / Manufacturer":"Farmer / Raw Material"}
+                      Step {regStep} of 2 · {regRole==="buyer"?"Industry Buyer":regRole==="supplier"?"Supplier / Manufacturer":"Farmer / Raw Material"}
                     </div>
                   </div>
                   <button className={`modal-close ${regRole==="farmer"?"dark-close":""}`} onClick={() => { setModal(null); setRegStep(1); setAuthErr(""); }}>×</button>
@@ -2282,7 +2279,7 @@ function HowItWorks() {
   return (
     <div>
       <div className="role-tabs" style={{marginBottom:32}}>
-        {[["🌾","Farmers","farmer"],["🏭","Suppliers","supplier"],["🏗️","Buyers","buyer"]].map(([icon,label,r]) => (
+        {[["🌾","Farmers","farmer"],["🏭","Suppliers","supplier"],["🏗️","Industry Buyers","buyer"]].map(([icon,label,r]) => (
           <button key={r} className={`role-tab ${role===r?colorMap[r]:""}`} onClick={() => setRole(r)}>{icon} {label}</button>
         ))}
       </div>
