@@ -146,70 +146,69 @@ input, select, textarea { font-family: inherit; }
 
 /* ── HERO ── */
 .hero {
-  background: var(--soil);
-  background-image: url('/images/hero-bg.jpg');
-  background-size: cover;
-  background-position: center;
-  background-blend-mode: overlay;
-  padding: clamp(48px, 7vh, 90px) clamp(20px, 4vw, 64px) 0;
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+  padding: clamp(64px, 9vh, 110px) clamp(20px, 4vw, 64px) clamp(64px, 9vh, 110px);
   position: relative; overflow: hidden;
-  min-height: calc(100vh - 100px);
+  min-height: calc(100vh - 64px);
   width: 100%;
   display: flex;
   align-items: center;
 }
+/* subtle dot-grid background pattern */
 .hero-texture {
-  position: absolute; inset: 0; pointer-events: none; opacity: 0.03;
-  background-image: repeating-linear-gradient(45deg, white 0, white 1px, transparent 0, transparent 50%);
-  background-size: 12px 12px;
+  position: absolute; inset: 0; pointer-events: none; opacity: 1;
+  background-image: radial-gradient(circle, #e5e7eb 1px, transparent 1px);
+  background-size: 28px 28px;
 }
+/* soft green glow top-right */
 .hero-glow {
-  position: absolute; top: -200px; right: -100px;
-  width: 700px; height: 700px; border-radius: 50%;
-  background: radial-gradient(circle, rgba(5,150,105,0.22) 0%, transparent 60%);
+  position: absolute; top: -160px; right: -80px;
+  width: 600px; height: 600px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(5,150,105,0.07) 0%, transparent 65%);
   pointer-events: none;
 }
-.hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr clamp(320px, 35%, 440px); gap: clamp(32px, 5vw, 64px); align-items: center; width: 100%; padding-bottom: clamp(48px, 6vh, 80px); }
+.hero-inner { max-width: 1200px; margin: 0 auto; display: grid; grid-template-columns: 1fr clamp(320px, 35%, 460px); gap: clamp(40px, 5vw, 80px); align-items: center; width: 100%; position: relative; z-index: 1; }
 .hero-left { padding-bottom: 0; }
 .hero-eyebrow {
   display: inline-flex; align-items: center; gap: 8px;
-  background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.28);
-  color: var(--harvest); font-size: 11.5px; font-weight: 600; letter-spacing: 1.5px;
-  text-transform: uppercase; padding: 5px 12px; border-radius: 20px; margin-bottom: 24px;
+  background: var(--mint); border: 1px solid #a7f3d0;
+  color: var(--leaf); font-size: 11.5px; font-weight: 700; letter-spacing: 1.5px;
+  text-transform: uppercase; padding: 5px 14px; border-radius: 20px; margin-bottom: 24px;
 }
-.hero-pulse { width: 6px; height: 6px; background: var(--harvest); border-radius: 50%; animation: pulse 2s infinite; }
+.hero-pulse { width: 6px; height: 6px; background: var(--leaf); border-radius: 50%; animation: pulse 2s infinite; }
 @keyframes pulse { 0%,100%{opacity:1;transform:scale(1)} 50%{opacity:0.4;transform:scale(0.8)} }
 .hero h1 {
   font-family: 'Bricolage Grotesque', sans-serif;
-  font-size: clamp(40px, 5vw, 68px); font-weight: 800;
-  color: white; line-height: 1.05; letter-spacing: -1.5px;
+  font-size: clamp(38px, 5vw, 66px); font-weight: 800;
+  color: var(--soil); line-height: 1.05; letter-spacing: -1.5px;
   margin-bottom: 20px;
 }
-.hero h1 em { color: var(--harvest); font-style: normal; }
-.hero-sub { font-size: 17px; color: rgba(255,255,255,0.55); line-height: 1.75; max-width: 520px; margin-bottom: 36px; font-weight: 400; }
-.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 52px; }
+.hero h1 em { color: var(--leaf); font-style: normal; }
+.hero-sub { font-size: 17px; color: var(--text-secondary); line-height: 1.75; max-width: 520px; margin-bottom: 36px; font-weight: 400; }
+.hero-actions { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 44px; }
 .hero-trust { display: flex; align-items: center; gap: 24px; flex-wrap: wrap; }
-.trust-item { display: flex; align-items: center; gap: 7px; color: rgba(255,255,255,0.45); font-size: 12.5px; }
+.trust-item { display: flex; align-items: center; gap: 7px; color: var(--text-muted); font-size: 12.5px; }
 .trust-icon { font-size: 15px; }
 .hero-right { position: relative; align-self: center; }
 .hero-role-cards {
-  background: rgba(255,255,255,0.04); border: 1px solid rgba(255,255,255,0.09);
-  border-radius: var(--r-xl); padding: 28px; margin-bottom: 0;
+  background: #ffffff; border: 1.5px solid var(--border);
+  border-radius: var(--r-xl); padding: 28px; box-shadow: var(--shadow-lg);
 }
-.hero-role-title { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.35); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
+.hero-role-title { font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 16px; }
 .role-cards-grid { display: flex; flex-direction: column; gap: 10px; }
 .role-card-hero {
-  background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.09);
+  background: var(--cream); border: 1.5px solid var(--border);
   border-radius: var(--r-md); padding: 16px 18px; cursor: pointer; transition: all 0.2s;
   display: flex; align-items: center; gap: 14px;
 }
-.role-card-hero:hover { background: rgba(255,255,255,0.09); border-color: rgba(255,255,255,0.18); transform: translateX(4px); }
-.role-card-hero.selected { background: #a7f3d0; border-color: rgba(5,150,105,0.5); }
+.role-card-hero:hover { background: var(--mint); border-color: #a7f3d0; transform: translateX(4px); }
+.role-card-hero.selected { background: var(--mint); border-color: var(--leaf); }
 .rch-icon { font-size: 26px; flex-shrink: 0; }
-.rch-label { font-size: 15px; font-weight: 600; color: white; line-height: 1.2; }
-.rch-sub { font-size: 12px; color: rgba(255,255,255,0.4); margin-top: 2px; }
-.rch-arrow { margin-left: auto; color: rgba(255,255,255,0.25); font-size: 16px; transition: all 0.2s; }
-.role-card-hero:hover .rch-arrow { color: var(--harvest); transform: translateX(3px); }
+.rch-label { font-size: 15px; font-weight: 600; color: var(--soil); line-height: 1.2; }
+.rch-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+.rch-arrow { margin-left: auto; color: var(--text-muted); font-size: 16px; transition: all 0.2s; }
+.role-card-hero:hover .rch-arrow { color: var(--leaf); transform: translateX(3px); }
 
 /* ── ROLE TABS (reused section) ── */
 .role-tabs { display: flex; gap: 6px; background: var(--cream); border-radius: 12px; padding: 5px; width: fit-content; }
