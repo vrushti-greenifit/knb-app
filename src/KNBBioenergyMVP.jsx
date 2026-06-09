@@ -558,30 +558,49 @@ input, select, textarea { font-family: inherit; }
 .btn-carbon-outline:hover { background: var(--mint); }
 
 /* ── TRADING TERMINAL ── */
-.terminal-wrap { background:#fff; border-radius:var(--r-lg); overflow:hidden; border:1.5px solid var(--border); margin-bottom:20px; width:100%; box-shadow:var(--shadow-md); }
-.terminal-header { background:var(--soil); padding:12px 18px; display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.07); }
-.terminal-body { display:grid; grid-template-columns:1fr 260px; }
-.t-cards-grid { padding:14px; display:grid; grid-template-columns:repeat(auto-fill,minmax(200px,1fr)); gap:10px; border-right:1px solid var(--border); background:#fff; }
-.t-card { background:var(--cream); border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px; cursor:pointer; transition:all 0.15s; }
-.t-card:hover { background:#fff; box-shadow:var(--shadow-md); transform:translateY(-2px); }
-.t-card.up-card { border-top:3px solid #059669; }
-.t-card.dn-card { border-top:3px solid #dc2626; }
+/* ── ofbusiness-style Price Grid ── */
+.ofb-grid-header { display:flex; justify-content:space-between; align-items:flex-end; margin-bottom:20px; flex-wrap:wrap; gap:12px; }
+.ofb-price-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:16px; margin-bottom:32px; }
+.ofb-price-card {
+  background:#fff; border:1.5px solid var(--border); border-radius:var(--r-lg);
+  padding:20px; cursor:pointer; transition:all 0.2s;
+  display:flex; flex-direction:column; gap:12px;
+  box-shadow:var(--shadow-sm);
+}
+.ofb-price-card:hover { box-shadow:var(--shadow-lg); transform:translateY(-4px); border-color:var(--leaf); }
+.ofb-price-card.opc-up { border-top:3px solid #059669; }
+.ofb-price-card.opc-dn { border-top:3px solid #dc2626; }
+.opc-header { display:flex; justify-content:space-between; align-items:flex-start; }
+.opc-icon-wrap { width:52px; height:52px; border-radius:14px; background:var(--mint); display:flex; align-items:center; justify-content:center; font-size:26px; flex-shrink:0; }
+.opc-right-top { display:flex; flex-direction:column; align-items:flex-end; gap:5px; }
+.opc-type { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:1px; padding:3px 8px; border-radius:5px; }
+.opc-pellet { background:var(--mint); color:var(--leaf); }
+.opc-briquette { background:var(--harvest-pale); color:var(--gold); }
+.opc-trend { font-size:11px; font-weight:700; }
+.opc-trend-up { color:#059669; }
+.opc-trend-dn { color:#dc2626; }
+.opc-name { font-size:15px; font-weight:700; color:var(--soil); line-height:1.25; }
+.opc-price { font-family:'Bricolage Grotesque',sans-serif; font-size:28px; font-weight:800; color:var(--leaf); line-height:1; }
+.opc-per { font-size:13px; color:var(--text-muted); font-weight:400; }
+.opc-specs { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.opc-spec { background:var(--cream); border-radius:var(--r-sm); padding:7px 10px; }
+.opc-sk { font-size:9.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; display:block; margin-bottom:2px; }
+.opc-sv { font-size:12px; font-weight:600; color:var(--soil); }
+.opc-actions { display:flex; gap:8px; }
+.opc-buy-btn { flex:1; background:var(--leaf); color:#fff; border:none; border-radius:var(--r-sm); padding:10px; font-size:12.5px; font-weight:600; cursor:pointer; transition:all .15s; font-family:inherit; }
+.opc-buy-btn:hover { background:var(--leaf-mid); box-shadow:0 3px 10px rgba(5,150,105,0.25); }
+.opc-sell-btn { flex:1; background:#fff; color:#dc2626; border:1.5px solid #fca5a5; border-radius:var(--r-sm); padding:10px; font-size:12.5px; font-weight:600; cursor:pointer; transition:all .15s; font-family:inherit; }
+.opc-sell-btn:hover { background:#fef2f2; border-color:#f87171; }
+/* keep legacy terminal classes for chart popup */
 .t-short { font-family:monospace; font-size:10px; font-weight:700; color:var(--text-muted); letter-spacing:1.5px; margin-bottom:3px; }
-.terminal-wrap .t-name { font-size:12px; font-weight:600; color:var(--soil); margin-bottom:8px; line-height:1.3; }
 .t-price-big { font-family:'Bricolage Grotesque',monospace; font-size:20px; font-weight:800; margin-bottom:2px; }
 .t-green { color:#059669; } .t-red { color:#dc2626; }
-.t-chg-row { font-size:10.5px; font-weight:600; margin-bottom:8px; }
 .t-ohlc { display:grid; grid-template-columns:1fr 1fr; gap:3px; margin-bottom:8px; }
 .t-ohlc-item { font-size:9.5px; }
 .t-ohlc-k { color:var(--text-muted); text-transform:uppercase; letter-spacing:0.5px; }
 .t-ohlc-v { color:var(--soil); font-family:monospace; font-weight:600; font-size:10px; }
-.t-bid-ask { display:flex; gap:5px; margin-bottom:6px; }
-.t-bid,.t-ask { flex:1; border-radius:4px; padding:4px 6px; text-align:center; }
-.t-bid { background:rgba(5,150,105,0.08); border:1px solid rgba(5,150,105,0.2); }
-.t-ask { background:rgba(220,38,38,0.06); border:1px solid rgba(220,38,38,0.18); }
 .t-ba-lbl { font-size:8.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; }
 .t-ba-val { font-size:12px; font-weight:700; font-family:monospace; }
-.t-vol-row { font-size:9.5px; color:var(--text-muted); }
 /* ── State Price Bar ── */
 .state-price-bar { display:flex; align-items:center; gap:10px; background:#fff; border:1.5px solid var(--border); border-radius:var(--r-md); padding:12px 18px; margin-bottom:16px; flex-wrap:wrap; box-shadow:var(--shadow-sm); }
 .spb-icon { font-size:18px; }
@@ -913,6 +932,10 @@ const INIT_PRICES = [
   { id:"SDPEL", name:"Sawdust Pellets",         short:"SD-PEL", grade:"A+ · KNB Assured",   price:7800, open:7900, high:7950, low:7780, vol:145, cal:"4,200" },
   { id:"AWBRQ", name:"Agro Waste Briquettes",   short:"AW-BRQ", grade:"A · KNB Certified",  price:5600, open:5560, high:5640, low:5520, vol:280, cal:"3,800" },
 ];
+const PRODUCT_ICONS = {
+  "SDBRQ":"🪵", "PNPEL":"🌲", "GNPEL":"🥜", "RHBRQ":"🌾",
+  "GNBRQ":"🥜", "SDPEL":"🪵", "AWBRQ":"♻️",
+};
 
 const BIOMASS_TYPES = ["Soyabean Husk","Rice Husk","Corn Cob","Agro Waste Mix","Mustard Stalk","Sawdust","Groundnut Shell","Sugarcane Bagasse","Cotton Stalk","Other"];
 const INDIA_STATES = ["Andhra Pradesh","Assam","Bihar","Chhattisgarh","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Odisha","Punjab","Rajasthan","Tamil Nadu","Telangana","Uttar Pradesh","Uttarakhand","West Bengal","Other"];
@@ -1660,10 +1683,9 @@ export default function KNBPlatform() {
           <div className="ex-header">
             <div>
               <div className="section-kicker">Spot Exchange</div>
-              <div className="section-h2">Live <em>Biomass Prices</em></div>
-              <div className="section-desc">Prices update with every transaction. Bid & Ask refresh every 1.2 seconds.</div>
+              <div className="section-h2">Biomass <em>Price Discovery</em></div>
+              <div className="section-desc">Live catalog prices. Select your state to see delivery-inclusive rates. Place buy or sell orders via WhatsApp.</div>
             </div>
-            <div className="live-pill"><div className="live-dot"/>Live · {liveTime}</div>
           </div>
 
           {/* ── State Price Selector ── */}
@@ -1685,37 +1707,48 @@ export default function KNBPlatform() {
             }
           </div>
 
-          {/* Price Terminal */}
-          <div className="terminal-wrap">
-            <div className="terminal-header">
-              <div style={{display:"flex",gap:14,alignItems:"center"}}>
-                <span style={{fontSize:11,fontWeight:700,color:"rgba(255,255,255,0.45)",letterSpacing:"1.5px",textTransform:"uppercase"}}>KNB Spot Exchange · Catalog Prices</span>
-              </div>
-              <div className="live-pill" style={{background:"rgba(0,0,0,0.3)",border:"1px solid rgba(255,255,255,0.07)"}}>
-                <div className="live-dot"/><span style={{fontSize:11,fontFamily:"monospace"}}>{liveTime}</span>
-              </div>
+          {/* ── Live Price Grid (ofbusiness style) ── */}
+          <div className="ofb-grid-header">
+            <div>
+              <div className="section-kicker">Live Prices</div>
+              <div style={{fontSize:13,color:"var(--text-muted)",marginTop:2}}>Click any product to view price chart · Prices inclusive of delivery to {priceState}</div>
             </div>
-            <div style={{padding:14,display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(210px,1fr))",gap:10}}>
-              {prices.map(p => (
-                <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`} onClick={()=>setSelectedPrice(p)} style={{cursor:"pointer"}}>
-                  <div className="t-short">{p.short}</div>
-                  <div className="t-name">{p.name}</div>
-                  <div className="t-price-big" style={{color:"var(--leaf)"}}>₹{adjPrice(p.price).toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"var(--text-muted)"}}>/MT</span></div>
-                  <div className="t-ohlc" style={{marginTop:8}}>
-                    <div className="t-ohlc-item"><div className="t-ohlc-k">Cal. Value</div><div className="t-ohlc-v">{p.cal} kcal/kg</div></div>
-                    <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"var(--gold)"}}>{p.grade.split("·")[0].trim()}</div></div>
-                  </div>
-                  <div className="t-bid-ask" style={{marginTop:10}}>
-                    <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(adjPrice(p.price)-Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
-                    <div className="t-ask"><div className="t-ba-lbl">Ask</div><div className="t-ba-val t-red">₹{(adjPrice(p.price)+Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
-                  </div>
-                  <div className="t-card-actions" onClick={e=>e.stopPropagation()}>
-                    <button className="tc-btn-buy" onClick={()=>openBidSell("buy",p.name,p.price)}>🛒 Buy</button>
-                    <button className="tc-btn-sell" onClick={()=>openBidSell("sell",p.name,p.price)}>📦 Sell</button>
+            <div className="live-pill"><div className="live-dot"/>Live · {liveTime}</div>
+          </div>
+          <div className="ofb-price-grid">
+            {prices.map(p => (
+              <div key={p.id} className={`ofb-price-card ${p.up?"opc-up":"opc-dn"}`} onClick={()=>setSelectedPrice(p)}>
+                <div className="opc-header">
+                  <div className="opc-icon-wrap">{PRODUCT_ICONS[p.id] || "🌿"}</div>
+                  <div className="opc-right-top">
+                    <span className={p.short.includes("PEL") ? "opc-type opc-pellet" : "opc-type opc-briquette"}>
+                      {p.short.includes("PEL") ? "Pellet" : "Briquette"}
+                    </span>
+                    <span className={p.up ? "opc-trend opc-trend-up" : "opc-trend opc-trend-dn"}>
+                      {p.up ? "↑ Up" : "↓ Down"}
+                    </span>
                   </div>
                 </div>
-              ))}
-            </div>
+                <div className="opc-name">{p.name}</div>
+                <div className="opc-price">
+                  ₹{adjPrice(p.price).toLocaleString("en-IN")}<span className="opc-per">/MT</span>
+                </div>
+                <div className="opc-specs">
+                  <div className="opc-spec">
+                    <span className="opc-sk">Cal. Value</span>
+                    <span className="opc-sv">{p.cal} kcal/kg</span>
+                  </div>
+                  <div className="opc-spec">
+                    <span className="opc-sk">Grade</span>
+                    <span className="opc-sv" style={{color:"var(--gold)"}}>{p.grade.split("·")[0].trim()}</span>
+                  </div>
+                </div>
+                <div className="opc-actions" onClick={e=>e.stopPropagation()}>
+                  <button className="opc-buy-btn" onClick={()=>openBidSell("buy",p.name,p.price)}>🛒 Buy</button>
+                  <button className="opc-sell-btn" onClick={()=>openBidSell("sell",p.name,p.price)}>📦 Sell</button>
+                </div>
+              </div>
+            ))}
           </div>
 
           {/* Full Price Table */}
