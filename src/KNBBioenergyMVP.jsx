@@ -567,7 +567,8 @@ input, select, textarea { font-family: inherit; }
 .t-card.up-card { border-top:2px solid #27ae60; }
 .t-card.dn-card { border-top:2px solid #e74c3c; }
 .t-short { font-family:monospace; font-size:10px; font-weight:700; color:rgba(255,255,255,0.35); letter-spacing:1.5px; margin-bottom:3px; }
-.t-name { font-size:11px; font-weight:600; color:rgba(255,255,255,0.75); margin-bottom:8px; line-height:1.3; }
+/* .t-name inside terminal cards (scoped to dark terminal) */
+.terminal-wrap .t-name { font-size:11px; font-weight:600; color:rgba(255,255,255,0.75); margin-bottom:8px; line-height:1.3; }
 .t-price-big { font-family:'Bricolage Grotesque',monospace; font-size:20px; font-weight:800; margin-bottom:2px; }
 .t-green { color:#27ae60; } .t-red { color:#e74c3c; }
 .t-chg-row { font-size:10.5px; font-weight:600; margin-bottom:8px; }
@@ -1385,7 +1386,7 @@ export default function KNBPlatform() {
             <div key={i} className="ticker-item">
               <span className="t-name">{p.name}</span>
               <span className="t-price">₹{p.price.toLocaleString("en-IN")}/MT</span>
-              <span style={{color:"rgba(255,255,255,0.3)",fontSize:11}}>Cal: {p.cal} kcal/kg</span>
+              <span style={{color:"var(--text-muted)",fontSize:11}}>Cal: {p.cal} kcal/kg</span>
             </div>
           ))}
         </div>
@@ -1648,7 +1649,7 @@ export default function KNBPlatform() {
             <div key={i} className="ticker-item">
               <span className="t-name">{p.name}</span>
               <span className="t-price">₹{p.price.toLocaleString("en-IN")}/MT</span>
-              <span style={{color:"rgba(255,255,255,0.3)",fontSize:11}}>Cal: {p.cal} kcal/kg</span>
+              <span style={{color:"var(--text-muted)",fontSize:11}}>Cal: {p.cal} kcal/kg</span>
             </div>
           ))}
         </div>
