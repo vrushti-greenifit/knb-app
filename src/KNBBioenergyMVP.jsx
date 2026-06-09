@@ -577,6 +577,43 @@ input, select, textarea { font-family: inherit; }
 .t-ba-lbl { font-size:8.5px; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:0.8px; }
 .t-ba-val { font-size:12px; font-weight:700; font-family:monospace; }
 .t-vol-row { font-size:9.5px; color:rgba(255,255,255,0.3); }
+/* ── State Price Bar ── */
+.state-price-bar { display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.09); border-radius:10px; padding:10px 16px; margin-bottom:14px; flex-wrap:wrap; }
+.spb-icon { font-size:18px; }
+.spb-label { font-size:13px; color:rgba(255,255,255,0.65); white-space:nowrap; }
+.spb-select { background:rgba(0,0,0,0.4); color:#fff; border:1px solid rgba(255,255,255,0.18); border-radius:6px; padding:5px 10px; font-size:13px; cursor:pointer; }
+.spb-select:focus { outline:none; border-color:var(--gold); }
+.spb-note { font-size:12px; color:var(--gold); font-weight:500; }
+/* ── Price Card Actions ── */
+.t-card-actions { display:flex; gap:5px; margin-top:8px; }
+.tc-btn-buy { flex:1; background:rgba(39,174,96,0.18); color:#6fcf97; border:1px solid rgba(39,174,96,0.35); border-radius:5px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; transition:background .2s; }
+.tc-btn-buy:hover { background:rgba(39,174,96,0.32); }
+.tc-btn-sell { flex:1; background:rgba(231,76,60,0.15); color:#eb5757; border:1px solid rgba(231,76,60,0.3); border-radius:5px; padding:5px 8px; font-size:11px; font-weight:600; cursor:pointer; transition:background .2s; }
+.tc-btn-sell:hover { background:rgba(231,76,60,0.28); }
+/* ── Table Buy/Sell Buttons ── */
+.tb-buy-btn { background:var(--leaf); color:#fff; border:none; border-radius:5px; padding:6px 12px; font-size:11.5px; font-weight:600; cursor:pointer; transition:opacity .15s; }
+.tb-buy-btn:hover { opacity:.85; }
+.tb-sell-btn { background:rgba(231,76,60,0.18); color:#eb5757; border:1px solid rgba(231,76,60,0.35); border-radius:5px; padding:6px 12px; font-size:11.5px; font-weight:600; cursor:pointer; transition:background .2s; }
+.tb-sell-btn:hover { background:rgba(231,76,60,0.32); }
+/* ── Daily Auction ── */
+.auction-section { margin-top:32px; }
+.auction-hdr { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:18px; gap:12px; flex-wrap:wrap; }
+.auction-kicker { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:2px; color:var(--gold); margin-bottom:4px; }
+.auction-title { font-size:22px; font-weight:800; color:#fff; font-family:'Bricolage Grotesque',sans-serif; }
+.auction-sub { font-size:12px; color:rgba(255,255,255,0.45); margin-top:3px; }
+.auction-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(250px,1fr)); gap:14px; }
+.auction-card { background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.09); border-radius:12px; padding:16px; display:flex; flex-direction:column; gap:10px; }
+.ac-top { display:flex; justify-content:space-between; align-items:center; }
+.ac-lot { font-size:11px; font-weight:700; color:rgba(255,255,255,0.45); text-transform:uppercase; letter-spacing:1.5px; }
+.ac-cert { font-size:10.5px; background:rgba(39,174,96,0.15); color:#6fcf97; border:1px solid rgba(39,174,96,0.25); border-radius:4px; padding:2px 7px; }
+.ac-product { font-size:17px; font-weight:700; color:#fff; line-height:1.2; }
+.ac-seller { font-size:11.5px; color:rgba(255,255,255,0.4); }
+.ac-specs { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.ac-spec { background:rgba(0,0,0,0.2); border-radius:6px; padding:6px 10px; }
+.ac-sk { font-size:10px; color:rgba(255,255,255,0.35); text-transform:uppercase; letter-spacing:1px; display:block; }
+.ac-sv { font-size:13px; font-weight:600; color:#fff; }
+.ac-bid-btn { background:var(--gold); color:#1a1a1a; border:none; border-radius:8px; padding:10px 16px; font-size:13px; font-weight:700; cursor:pointer; transition:opacity .15s; text-align:center; }
+.ac-bid-btn:hover { opacity:.88; }
 /* Deal Feed */
 .deal-panel { padding:12px; overflow:hidden; }
 .deal-title { font-size:9.5px; font-weight:700; color:rgba(255,255,255,0.3); text-transform:uppercase; letter-spacing:2px; margin-bottom:10px; display:flex; align-items:center; gap:6px; }
@@ -872,6 +909,25 @@ const INIT_PRICES = [
 const BIOMASS_TYPES = ["Soyabean Husk","Rice Husk","Corn Cob","Agro Waste Mix","Mustard Stalk","Sawdust","Groundnut Shell","Sugarcane Bagasse","Cotton Stalk","Other"];
 const INDIA_STATES = ["Andhra Pradesh","Assam","Bihar","Chhattisgarh","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Odisha","Punjab","Rajasthan","Tamil Nadu","Telangana","Uttar Pradesh","Uttarakhand","West Bengal","Other"];
 
+// ── State transport adjustments (₹/MT added to base Akola price) ──
+const STATE_PRICE_ADJ = {
+  "Maharashtra":0,"Gujarat":180,"Madhya Pradesh":150,"Goa":240,"Delhi":280,
+  "Rajasthan":320,"Chhattisgarh":380,"Uttar Pradesh":390,"Haryana":440,
+  "Punjab":480,"Uttarakhand":520,"Telangana":520,"Jharkhand":570,"Himachal Pradesh":580,
+  "Karnataka":590,"Odisha":640,"Andhra Pradesh":560,"Bihar":630,
+  "Tamil Nadu":690,"Kerala":720,"West Bengal":760,"Assam":830,"Other":400
+};
+
+// ── Daily Auction Lots ──
+const DAILY_AUCTIONS = [
+  { id:"DA001", lot:"Lot #A1", product:"Soyabean Briquettes",  qty:"50 MT",  basePrice:5200, bids:8,  cert:true,  closes:"Today · 6:00 PM",  seller:"KNB Green Energy Ltd" },
+  { id:"DA002", lot:"Lot #A2", product:"Groundnut Pellets",    qty:"20 MT",  basePrice:7200, bids:5,  cert:true,  closes:"Today · 6:00 PM",  seller:"KNB Green Energy Ltd" },
+  { id:"DA003", lot:"Lot #A3", product:"Rice Husk Briquettes", qty:"100 MT", basePrice:4800, bids:12, cert:true,  closes:"Today · 6:00 PM",  seller:"KNB Green Energy Ltd" },
+  { id:"DA004", lot:"Lot #A4", product:"Sawdust Pellets",      qty:"15 MT",  basePrice:7800, bids:3,  cert:true,  closes:"Tomorrow · 10 AM", seller:"Green Flame Industries" },
+  { id:"DA005", lot:"Lot #A5", product:"Bamboo Briquettes",    qty:"30 MT",  basePrice:6200, bids:7,  cert:true,  closes:"Today · 6:00 PM",  seller:"Green Flame Industries" },
+  { id:"DA006", lot:"Lot #A6", product:"Wheat Straw Pellets",  qty:"40 MT",  basePrice:5800, bids:4,  cert:false, closes:"Tomorrow · 10 AM", seller:"Punjab Agro Fuels" },
+];
+
 const TAG_COLORS = { Briquette:"tag-brq", Pellet:"tag-pel", "Raw Biomass":"tag-raw" };
 
 /* ─── MAIN COMPONENT ───────────────────────────────────────── */
@@ -911,6 +967,12 @@ export default function KNBPlatform() {
   const [currentUser, setCurrentUser] = useState(null);
   const [userProfile, setUserProfile] = useState(null);
 
+  // ── Exchange state ──
+  const [priceState, setPriceState] = useState("Maharashtra");
+  const [bidModal, setBidModal]     = useState(null); // {type:"buy"|"sell", name, price}
+  const [bidQty, setBidQty]         = useState("");
+  // ── Registration GST ──
+  const [regGST, setRegGST]         = useState("");
   // ── Admin state ──
   const ADMIN_PHONES = ["+919920657193", "+91 99206 57193"];
   const [adminTab, setAdminTab] = useState("enquiries");
@@ -1027,6 +1089,28 @@ export default function KNBPlatform() {
     if (modal === "myorders" && currentUser) loadMyOrders();
   }, [modal]);
 
+  // ── Price helpers ──
+  const adjPrice = (base) => base + (STATE_PRICE_ADJ[priceState] || 0);
+
+  const openBidSell = (type, name, price) => {
+    setBidModal({ type, name, price });
+    setBidQty("");
+  };
+
+  const sendBidWhatsApp = () => {
+    if (!bidQty || isNaN(bidQty) || +bidQty <= 0) { showToast("Please enter a valid quantity."); return; }
+    const adj = adjPrice(bidModal.price);
+    const msg = `${bidModal.type === "buy" ? "🛒 BUY ORDER" : "📦 SELL OFFER"} — KNB BioEnergy Platform\n\nProduct: ${bidModal.name}\nPrice: ₹${adj.toLocaleString("en-IN")}/MT\nQuantity: ${bidQty} MT\nDelivery State: ${priceState}\nTotal Value: ₹${(adj * +bidQty).toLocaleString("en-IN")}\n\nPlease connect me with the relevant party.`;
+    window.open(`https://wa.me/919920657193?text=${encodeURIComponent(msg)}`, "_blank");
+    setBidModal(null);
+  };
+
+  const placeLotBid = (lot) => {
+    const adj = adjPrice(lot.basePrice);
+    const msg = `🔨 AUCTION BID — KNB BioEnergy Platform\n\n${lot.lot}: ${lot.product}\nQuantity: ${lot.qty}\nMy Bid Price: ₹${adj.toLocaleString("en-IN")}/MT\nDelivery State: ${priceState}\nCloses: ${lot.closes}\n\nPlease register my bid.`;
+    window.open(`https://wa.me/919920657193?text=${encodeURIComponent(msg)}`, "_blank");
+  };
+
   // ── OTP helper ──
   const fmtPhone = (p) => {
     const d = p.replace(/\D/g,"");
@@ -1137,7 +1221,7 @@ export default function KNBPlatform() {
       const cred = await regConfirm.confirm(regOTP);
       await setDoc(doc(db, "users", cred.user.uid), {
         name: regName, company: regCompany, phone: fmtPhone(regPhone),
-        role: regRole, industry: regIndustry,
+        role: regRole, industry: regIndustry, gst: regGST,
         state: regState, district: regDistrict, village: regVillage,
         location: regLocation || [regDistrict, regState].filter(Boolean).join(", "),
         biomass: selectedBiomass, createdAt: new Date().toISOString(),
@@ -1312,7 +1396,7 @@ export default function KNBPlatform() {
               <button className="btn-outline-leaf btn-lg" onClick={() => setModal("choose-role")}>Join the Platform</button>
             </div>
             <div className="hero-trust">
-              {[["🏅","NABL Certified Products"],["🌿","Carbon Credits Included"],["⚡","Live Price Discovery"],["🔒","Verified Suppliers Only"]].map(([icon,txt],i) => (
+              {[["🏅","KNB Platform Certified"],["🌿","Carbon Credits Included"],["⚡","Live Price Discovery"],["🔒","Verified Suppliers Only"]].map(([icon,txt],i) => (
                 <div key={i} className="trust-item"><span className="trust-icon">{icon}</span><span>{txt}</span></div>
               ))}
             </div>
@@ -1410,7 +1494,7 @@ export default function KNBPlatform() {
           <button className="btn-harvest btn-xl" onClick={() => setModal("choose-role")}>Get Started Free →</button>
           <button className="btn-outline-leaf btn-xl" onClick={() => navTo("contact")}>Talk to Us</button>
         </div>
-        <div className="cta-note">Free to join · No listing fees · NABL Certified Products</div>
+        <div className="cta-note">Free to join · No listing fees · KNB Platform Certified</div>
       </section>
 
       </>}{/* END HOME */}
@@ -1425,7 +1509,7 @@ export default function KNBPlatform() {
             <div>
               <div className="section-kicker">Marketplace</div>
               <div className="section-h2">Biomass <em>Product Marketplace</em></div>
-              <div className="section-desc">Products listed by verified suppliers across India. NABL certified. Direct from manufacturers.</div>
+              <div className="section-desc">Products listed by verified suppliers across India. KNB Platform Certified. Direct from manufacturers.</div>
             </div>
             <button className="btn-harvest" onClick={() => setModal("choose-role")}>+ Get Quote</button>
           </div>
@@ -1513,7 +1597,7 @@ export default function KNBPlatform() {
                         <div className="spec"><div className="spec-k">Ash Content</div><div className="spec-v">{p.ash}</div></div>
                         <div className="spec"><div className="spec-k">Min Order</div><div className="spec-v">{p.moq}</div></div>
                       </div>
-                      <div className="carbon-line">🌿 {p.carbon} tCO₂e/MT offset credit available</div>
+                      <div className="carbon-line">{p.cert ? `✅ ${p.carbon} tCO₂e/MT confirmed carbon offset` : `🌿 ~${p.carbon} tCO₂e/MT estimated carbon offset`}</div>
                     </div>
                     <div className="prod-foot">
                       <div>
@@ -1574,6 +1658,25 @@ export default function KNBPlatform() {
             <div className="live-pill"><div className="live-dot"/>Live · {liveTime}</div>
           </div>
 
+          {/* ── State Price Selector ── */}
+          <div className="state-price-bar">
+            <span className="spb-icon">🗺</span>
+            <span className="spb-label">Showing prices for:</span>
+            <select
+              className="spb-select"
+              value={priceState}
+              onChange={e => setPriceState(e.target.value)}
+            >
+              {INDIA_STATES.map(s => <option key={s} value={s}>{s}</option>)}
+            </select>
+            {STATE_PRICE_ADJ[priceState] > 0 &&
+              <span className="spb-note">+₹{STATE_PRICE_ADJ[priceState].toLocaleString("en-IN")}/MT transport est.</span>
+            }
+            {STATE_PRICE_ADJ[priceState] === 0 &&
+              <span className="spb-note" style={{color:"var(--leaf)"}}>✓ Base price (no transport surcharge)</span>
+            }
+          </div>
+
           {/* Price Terminal */}
           <div className="terminal-wrap">
             <div className="terminal-header">
@@ -1589,16 +1692,19 @@ export default function KNBPlatform() {
                 <div key={p.id} className={`t-card ${p.up?"up-card":"dn-card"}`} onClick={()=>setSelectedPrice(p)} style={{cursor:"pointer"}}>
                   <div className="t-short">{p.short}</div>
                   <div className="t-name">{p.name}</div>
-                  <div className="t-price-big" style={{color:"#f5a623"}}>₹{p.price.toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"rgba(255,255,255,0.4)"}}>/MT</span></div>
+                  <div className="t-price-big" style={{color:"#f5a623"}}>₹{adjPrice(p.price).toLocaleString("en-IN")}<span style={{fontSize:11,fontWeight:400,color:"rgba(255,255,255,0.4)"}}>/MT</span></div>
                   <div className="t-ohlc" style={{marginTop:8}}>
                     <div className="t-ohlc-item"><div className="t-ohlc-k">Cal. Value</div><div className="t-ohlc-v">{p.cal} kcal/kg</div></div>
                     <div className="t-ohlc-item"><div className="t-ohlc-k">Grade</div><div className="t-ohlc-v" style={{color:"#f5a623"}}>{p.grade.split("·")[0].trim()}</div></div>
                   </div>
                   <div className="t-bid-ask" style={{marginTop:10}}>
-                    <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(p.price-Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
-                    <div className="t-ask"><div className="t-ba-lbl">Ask</div><div className="t-ba-val t-red">₹{(p.price+Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
+                    <div className="t-bid"><div className="t-ba-lbl">Bid</div><div className="t-ba-val t-green">₹{(adjPrice(p.price)-Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
+                    <div className="t-ask"><div className="t-ba-lbl">Ask</div><div className="t-ba-val t-red">₹{(adjPrice(p.price)+Math.round(p.price*0.002)).toLocaleString("en-IN")}</div></div>
                   </div>
-                  <div className="t-vol-row" style={{marginTop:6,textAlign:"center",color:"rgba(255,255,255,0.2)"}}>Tap to view chart ↗</div>
+                  <div className="t-card-actions" onClick={e=>e.stopPropagation()}>
+                    <button className="tc-btn-buy" onClick={()=>openBidSell("buy",p.name,p.price)}>🛒 Buy</button>
+                    <button className="tc-btn-sell" onClick={()=>openBidSell("sell",p.name,p.price)}>📦 Sell</button>
+                  </div>
                 </div>
               ))}
             </div>
@@ -1609,7 +1715,7 @@ export default function KNBPlatform() {
            <div className="ex-full-table-scroll">
             <table className="ex-table">
               <thead><tr>
-                <th>Product</th><th>Grade</th><th>Calorific Value</th><th>Spot Price</th><th>MOQ</th><th>Action</th>
+                <th>Product</th><th>Grade</th><th>Calorific Value</th><th>Spot Price ({priceState})</th><th>MOQ</th><th>Action</th>
               </tr></thead>
               <tbody>
                 {prices.map((p,i) => (
@@ -1617,17 +1723,103 @@ export default function KNBPlatform() {
                     <td><div className="td-name">{p.name}</div><div className="td-grade">{p.short}</div></td>
                     <td><span className="td-grade">{p.grade}</span></td>
                     <td><span style={{color:"var(--gold)",fontWeight:600}}>{p.cal} kcal/kg</span></td>
-                    <td><span className="td-price">₹{p.price.toLocaleString("en-IN")}/MT</span></td>
+                    <td><span className="td-price">₹{adjPrice(p.price).toLocaleString("en-IN")}/MT</span></td>
                     <td><span className="td-vol">10 MT</span></td>
-                    <td><button className="btn-enquire" style={{fontSize:11.5,padding:"7px 14px"}} onClick={()=>{setModal("enquiry");setEnquiryProduct({name:p.name,price:`₹${p.price.toLocaleString("en-IN")}/MT`});}}>Get Quote</button></td>
+                    <td>
+                      <div style={{display:"flex",gap:5}}>
+                        <button className="tb-buy-btn" onClick={()=>openBidSell("buy",p.name,p.price)}>🛒 Buy</button>
+                        <button className="tb-sell-btn" onClick={()=>openBidSell("sell",p.name,p.price)}>📦 Sell</button>
+                      </div>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
            </div>
           </div>
+          {/* ── Daily Auction Section ── */}
+          <div className="auction-section">
+            <div className="auction-hdr">
+              <div>
+                <div className="auction-kicker">🔨 Daily Auction</div>
+                <div className="auction-title">Today's Open Lots</div>
+                <div className="auction-sub">All bids are placed via WhatsApp · Auction closes at stated time</div>
+              </div>
+              <div className="live-pill"><div className="live-dot"/>Live Bidding</div>
+            </div>
+            <div className="auction-grid">
+              {DAILY_AUCTIONS.map(lot => {
+                const adjP = adjPrice(lot.basePrice);
+                return (
+                  <div key={lot.id} className="auction-card">
+                    <div className="ac-top">
+                      <span className="ac-lot">{lot.lot}</span>
+                      {lot.cert && <span className="ac-cert">✅ KNB Assured</span>}
+                    </div>
+                    <div className="ac-product">{lot.product}</div>
+                    <div className="ac-seller">{lot.seller}</div>
+                    <div className="ac-specs">
+                      <div className="ac-spec"><span className="ac-sk">Qty</span><span className="ac-sv">{lot.qty}</span></div>
+                      <div className="ac-spec"><span className="ac-sk">Base Price</span><span className="ac-sv" style={{color:"var(--gold)"}}>₹{adjP.toLocaleString("en-IN")}/MT</span></div>
+                      <div className="ac-spec"><span className="ac-sk">Bids</span><span className="ac-sv">{lot.bids} bids</span></div>
+                      <div className="ac-spec"><span className="ac-sk">Closes</span><span className="ac-sv" style={{color:"#e74c3c"}}>{lot.closes}</span></div>
+                    </div>
+                    <button className="ac-bid-btn" onClick={()=>placeLotBid(lot)}>
+                      Place Bid via WhatsApp →
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
         </div>
       </section>
+
+      {/* ── Bid / Sell Modal ── */}
+      {bidModal && (
+        <div className="modal-overlay" onClick={()=>setBidModal(null)}>
+          <div className="modal-box" onClick={e=>e.stopPropagation()} style={{maxWidth:400}}>
+            <button className="modal-close" onClick={()=>setBidModal(null)}>✕</button>
+            <div className="modal-title">
+              {bidModal.type === "buy" ? "🛒 Place Buy Order" : "📦 List Sell Offer"}
+            </div>
+            <div style={{marginBottom:14}}>
+              <div style={{fontWeight:600,fontSize:16,marginBottom:4}}>{bidModal.name}</div>
+              <div style={{color:"var(--gold)",fontSize:18,fontWeight:700}}>
+                ₹{adjPrice(bidModal.price).toLocaleString("en-IN")}<span style={{fontSize:13,color:"rgba(255,255,255,0.5)",fontWeight:400}}>/MT</span>
+              </div>
+              <div style={{fontSize:12,color:"rgba(255,255,255,0.45)",marginTop:3}}>
+                Inclusive of transport to {priceState}
+              </div>
+            </div>
+            <label className="form-label">Quantity (MT) *</label>
+            <input
+              className="form-input"
+              type="number"
+              min="1"
+              placeholder="e.g. 50"
+              value={bidQty}
+              onChange={e=>setBidQty(e.target.value)}
+              style={{marginBottom:10}}
+            />
+            {bidQty && !isNaN(bidQty) && +bidQty > 0 && (
+              <div style={{background:"rgba(56,193,114,0.1)",border:"1px solid rgba(56,193,114,0.25)",borderRadius:8,padding:"10px 14px",marginBottom:14}}>
+                <div style={{fontSize:12,color:"rgba(255,255,255,0.5)"}}>Estimated Total Value</div>
+                <div style={{fontSize:20,fontWeight:700,color:"var(--leaf)"}}>
+                  ₹{(adjPrice(bidModal.price) * +bidQty).toLocaleString("en-IN")}
+                </div>
+                <div style={{fontSize:11,color:"rgba(255,255,255,0.35)"}}>for {bidQty} MT delivered to {priceState}</div>
+              </div>
+            )}
+            <button className="btn-primary" style={{width:"100%",justifyContent:"center"}} onClick={sendBidWhatsApp}>
+              Send via WhatsApp 📲
+            </button>
+            <div style={{fontSize:11,color:"rgba(255,255,255,0.35)",textAlign:"center",marginTop:8}}>
+              Our team will connect you with the {bidModal.type === "buy" ? "supplier" : "buyer"} within 24 hours.
+            </div>
+          </div>
+        </div>
+      )}
       </>}{/* END EXCHANGE */}
 
       {/* ═══════════════════════════════════════
@@ -1655,7 +1847,7 @@ export default function KNBPlatform() {
             <div className="section-desc">India's first standardized quality framework for biomass. Buyers always know exactly what they're getting.</div>
           </div>
           <div className="cert-flow">
-            {[["1","Upload Lab Report","Submit NABL or government-approved lab test report for your product"],["2","Automated Grading","Our system assigns Grade A+, A, or B based on calorific value, moisture, ash & density"],["3","Greenifit Verification","A+ listings undergo independent third-party verification by our partner Greenifit"],["4","Go Live","Your product appears on the marketplace with a quality badge buyers trust"]].map(([n,t,d]) => (
+            {[["1","Upload Lab Report","Submit accredited lab test report (NABL/BIS/government-approved) for your product"],["2","Automated Grading","Our system assigns Grade A+, A, or B based on calorific value, moisture, ash & density"],["3","Greenifit Verification","A+ listings undergo independent third-party verification by our partner Greenifit"],["4","Go Live","Your product appears on the marketplace with a quality badge buyers trust"]].map(([n,t,d]) => (
               <div key={n} className="cert-step">
                 <div className="cert-num">{n}</div>
                 <div className="cert-step-title">{t}</div>
@@ -1665,8 +1857,8 @@ export default function KNBPlatform() {
           </div>
           <div className="grades-row">
             {[
-              { cls:"grade-Aplus", mark:"A+", name:"Platform Assured", desc:"NABL tested + Greenifit independently verified. Highest trust on the platform.", rows:[["Calorific Value","≥ 4,200 kcal/kg"],["Moisture","< 7%"],["Ash Content","< 5%"],["Density","≥ 620 kg/m³"],["Verification","NABL + Greenifit"]] },
-              { cls:"grade-A", mark:"A", name:"NABL Certified", desc:"Lab-tested by NABL-approved facility. Meets specifications for most industrial sectors.", rows:[["Calorific Value","≥ 3,500 kcal/kg"],["Moisture","< 10%"],["Ash Content","< 12%"],["Density","≥ 580 kg/m³"],["Verification","NABL Approved"]] },
+              { cls:"grade-Aplus", mark:"A+", name:"Platform Assured", desc:"Lab certified + Greenifit independently verified. Highest trust on the platform.", rows:[["Calorific Value","≥ 4,200 kcal/kg"],["Moisture","< 7%"],["Ash Content","< 5%"],["Density","≥ 620 kg/m³"],["Verification","Lab + Greenifit"]] },
+              { cls:"grade-A", mark:"A", name:"Lab Certified", desc:"Lab-tested by accredited facility. Meets specifications for most industrial sectors.", rows:[["Calorific Value","≥ 3,500 kcal/kg"],["Moisture","< 10%"],["Ash Content","< 12%"],["Density","≥ 580 kg/m³"],["Verification","Lab Approved"]] },
               { cls:"grade-B", mark:"B", name:"Standard Grade", desc:"Government-approved lab tested. Suitable for industries with standard heat requirements.", rows:[["Calorific Value","≥ 2,800 kcal/kg"],["Moisture","< 14%"],["Ash Content","< 18%"],["Density","≥ 520 kg/m³"],["Verification","Govt Lab Approved"]] },
             ].map(g => (
               <div key={g.mark} className={`grade-card-new ${g.cls}`}>
@@ -1808,7 +2000,7 @@ export default function KNBPlatform() {
           <div style={{textAlign:"center",padding:"32px 0",borderTop:"1px solid var(--border)"}}>
             <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:16}}>Certified & Compliant</div>
             <div style={{display:"flex",flexWrap:"wrap",gap:10,justifyContent:"center"}}>
-              {["NABL Partner","Greenifit Verified","Verra VCS","Gold Standard","CCTS Ready","BEE PAT","ISO 9001"].map(b => (
+              {["Lab Certified","Greenifit Verified","Verra VCS","Gold Standard","CCTS Ready","BEE PAT","ISO 9001"].map(b => (
                 <span key={b} style={{background:"var(--mint)",color:"var(--leaf)",fontSize:11.5,fontWeight:600,padding:"5px 12px",borderRadius:20,border:"1px solid rgba(46,107,53,0.2)"}}>{b}</span>
               ))}
             </div>
@@ -1964,7 +2156,7 @@ export default function KNBPlatform() {
               <h3>🌿 KNB Green Energy Ltd</h3>
               <p>India's leading manufacturer of Biomass Briquettes & Pellets. 300+ tons/day capacity. Made from 100% agricultural waste. Eco-friendly substitute to coal & furnace oil.</p>
               <div className="ft-badges">
-                {["NABL Partner","Greenifit Verified","Verra VCS","Gold Standard","CCTS Ready","BEE PAT"].map(b => <span key={b} className="ft-badge">{b}</span>)}
+                {["Lab Certified","Greenifit Verified","Verra VCS","Gold Standard","CCTS Ready","BEE PAT"].map(b => <span key={b} className="ft-badge">{b}</span>)}
               </div>
             </div>
             <div className="ft-col">
@@ -2174,7 +2366,7 @@ export default function KNBPlatform() {
                       </div>
                     </>)}
 
-                    {/* Buyer: Company + Industry + City */}
+                    {/* Buyer: Company + Industry + City + GST */}
                     {regRole === "buyer" && (<>
                       <div className="modal-row">
                         <div className="mf"><label>Company Name</label>
@@ -2186,12 +2378,18 @@ export default function KNBPlatform() {
                           </select>
                         </div>
                       </div>
-                      <div className="mf"><label>City / State</label>
-                        <input placeholder="e.g. Mumbai, Maharashtra" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                      <div className="modal-row">
+                        <div className="mf"><label>City / State</label>
+                          <input placeholder="e.g. Mumbai, Maharashtra" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                        </div>
+                        <div className="mf"><label>GST Number <span style={{fontWeight:400,color:"var(--text-muted)"}}>(optional)</span></label>
+                          <input placeholder="22AAAAA0000A1Z5" maxLength={15} value={regGST} onChange={e=>setRegGST(e.target.value.toUpperCase())}
+                            style={{letterSpacing:"1px"}}/>
+                        </div>
                       </div>
                     </>)}
 
-                    {/* Supplier: Company + Capacity + Location */}
+                    {/* Supplier: Company + Capacity + Location + GST */}
                     {regRole === "supplier" && (<>
                       <div className="modal-row">
                         <div className="mf"><label>Company Name</label>
@@ -2201,8 +2399,14 @@ export default function KNBPlatform() {
                           <input type="number" placeholder="e.g. 500" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
                         </div>
                       </div>
-                      <div className="mf"><label>Manufacturing Location</label>
-                        <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                      <div className="modal-row">
+                        <div className="mf"><label>Manufacturing Location</label>
+                          <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                        </div>
+                        <div className="mf"><label>GST Number <span style={{fontWeight:400,color:"var(--text-muted)"}}>(optional)</span></label>
+                          <input placeholder="22AAAAA0000A1Z5" maxLength={15} value={regGST} onChange={e=>setRegGST(e.target.value.toUpperCase())}
+                            style={{letterSpacing:"1px"}}/>
+                        </div>
                       </div>
                     </>)}
                     <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Mobile Number * (OTP will be sent)</label>
@@ -2415,7 +2619,7 @@ function HowItWorks() {
     ],
     supplier: [
       {icon:"🏭",title:"Create Supplier Account",desc:"Register your company, manufacturing location, and product range. Free to join."},
-      {icon:"🏅",title:"Get Certified",desc:"Upload your NABL lab report. We assign a quality grade and display your Platform Assured badge."},
+      {icon:"🏅",title:"Get Certified",desc:"Upload your accredited lab report. We assign a quality grade and display your Platform Assured badge."},
       {icon:"📋",title:"List Products",desc:"Add your briquettes, pellets, or biomass with pricing, specs, and available quantities."},
       {icon:"📈",title:"Receive Verified Enquiries",desc:"Industrial buyers send direct enquiries. Close orders and build a repeat customer base."},
     ],
