@@ -1,5 +1,5 @@
 import { initializeApp } from "firebase/app";
-import { getAuth, initializeRecaptchaConfig } from "firebase/auth";
+import { getAuth } from "firebase/auth";
 import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
@@ -15,7 +15,3 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-// Firebase 10+ requires this for Phone Auth reCAPTCHA enforcement mode.
-// Without it, signInWithPhoneNumber returns auth/operation-not-allowed.
-initializeRecaptchaConfig(auth).catch(() => {});

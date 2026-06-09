@@ -913,38 +913,40 @@ export default function KNBPlatform() {
     return d.startsWith("91") && d.length===12 ? "+"+d : "+91"+d;
   };
 
-  const getOTPErr = (code) => ({
-    "auth/invalid-phone-number":      "Invalid number. Please enter a valid 10-digit mobile number.",
-    "auth/quota-exceeded":            "SMS limit reached. Please try after some time.",
-    "auth/invalid-verification-code": "Wrong OTP. Please check the SMS and try again.",
-    "auth/code-expired":              "OTP expired. Please go back and request a new one.",
-    "auth/too-many-requests":         "Too many attempts. Please wait a few minutes and try again.",
-    "auth/unauthorized-domain":       "Domain not authorized — ask admin to add this site to Firebase.",
-    "auth/missing-phone-number":      "Please enter your mobile number.",
-    "auth/captcha-check-failed":      "Security check failed. Please refresh the page and try again.",
-    "auth/operation-not-allowed":     "Phone sign-in is not configured. Please contact KNB support at +91 99206 57193.",
-  }[code] || `Error: ${code}. Please try again or call +91 99206 57193`);
-
-  // ── reCAPTCHA: fresh verifier each time (avoids stale token issues) ──
-  const makeVerifier = () => {
-    // clear any leftover
-    if (window._knbCaptcha) {
-      try { window._knbCaptcha.clear(); } catch(_) {}
-      window._knbCaptcha = null;
-    }
-    window._knbCaptcha = new RecaptchaVerifier(auth, "recaptcha-root", {
-      size: "invisible"
-    });
-    captchaRef.current = window._knbCaptcha;
-    return window._knbCaptcha;
+  const getOTPErr = (e) => {
+    const code = e?.code;
+    const msg  = e?.message;
+    const known = {
+      "auth/invalid-phone-number":      "Invalid number. Enter a valid 10-digit mobile number.",
+      "auth/quota-exceeded":            "SMS limit reached. Try again after some time.",
+      "auth/invalid-verification-code": "Wrong OTP. Check the SMS and try again.",
+      "auth/code-expired":              "OTP expired. Go back and request a new one.",
+      "auth/too-many-requests":         "Too many attempts. Wait a few minutes and try again.",
+      "auth/unauthorized-domain":       "Domain not authorised in Firebase. Contact +91 99206 57193.",
+      "auth/missing-phone-number":      "Please enter your mobile number.",
+      "auth/captcha-check-failed":      "Security check failed. Refresh the page and try again.",
+      "auth/operation-not-allowed":     "Phone sign-in not enabled. Contact +91 99206 57193.",
+      "auth/billing-not-enabled":       "Billing not enabled on Firebase project. Contact +91 99206 57193.",
+      "auth/network-request-failed":    "Network error. Check your internet and try again.",
+    }[code];
+    if (known) return known;
+    if (msg)   return `${msg}`;
+    return `Error (${code ?? "unknown"}). Please try again or call +91 99206 57193`;
   };
 
+  // ── reCAPTCHA helpers ──
   const clearVerifier = () => {
-    if (window._knbCaptcha) {
-      try { window._knbCaptcha.clear(); } catch(_) {}
-      window._knbCaptcha = null;
-    }
+    try { window._knbCaptcha?.clear(); } catch(_) {}
+    window._knbCaptcha = null;
     captchaRef.current = null;
+  };
+
+  const makeVerifier = () => {
+    clearVerifier();
+    const v = new RecaptchaVerifier(auth, "recaptcha-root", { size: "invisible" });
+    window._knbCaptcha = v;
+    captchaRef.current = v;
+    return v;
   };
 
   // Login: Send OTP
@@ -958,8 +960,8 @@ export default function KNBPlatform() {
       const result = await signInWithPhoneNumber(auth, fmtPhone(loginPhone), verifier);
       setLoginConfirm(result); setLoginOTPSent(true);
     } catch(e) {
-      console.error("Login OTP error:", e.code, e.message, e);
-      setAuthErr(getOTPErr(e.code));
+      console.error("Login OTP error:", e);
+      setAuthErr(getOTPErr(e));
       clearVerifier();
     }
     setAuthBusy(false);
@@ -997,8 +999,8 @@ export default function KNBPlatform() {
       const result = await signInWithPhoneNumber(auth, fmtPhone(regPhone), verifier);
       setRegConfirm(result); setRegOTPSent(true); setRegStep(2);
     } catch(e) {
-      console.error("Register OTP error:", e.code, e.message, e);
-      setAuthErr(getOTPErr(e.code));
+      console.error("Register OTP error:", e);
+      setAuthErr(getOTPErr(e));
       clearVerifier();
     }
     setAuthBusy(false);
