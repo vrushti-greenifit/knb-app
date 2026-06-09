@@ -586,6 +586,13 @@ input, select, textarea { font-family: inherit; }
 .opc-spec { background:var(--cream); border-radius:var(--r-sm); padding:7px 10px; }
 .opc-sk { font-size:9.5px; color:var(--text-muted); text-transform:uppercase; letter-spacing:0.8px; display:block; margin-bottom:2px; }
 .opc-sv { font-size:12px; font-weight:600; color:var(--soil); }
+.opc-bid-ask { display:flex; align-items:center; background:var(--cream); border-radius:var(--r-sm); padding:8px 12px; gap:0; }
+.opc-bid, .opc-ask { flex:1; text-align:center; }
+.opc-ba-divider { width:1px; background:var(--border); height:28px; margin:0 8px; }
+.opc-ba-lbl { font-size:9px; color:var(--text-muted); text-transform:uppercase; letter-spacing:1px; margin-bottom:2px; }
+.opc-ba-val { font-size:13px; font-weight:700; font-family:monospace; }
+.opc-green { color:#059669; }
+.opc-red { color:#dc2626; }
 .opc-actions { display:flex; gap:8px; }
 .opc-buy-btn { flex:1; background:var(--leaf); color:#fff; border:none; border-radius:var(--r-sm); padding:10px; font-size:12.5px; font-weight:600; cursor:pointer; transition:all .15s; font-family:inherit; }
 .opc-buy-btn:hover { background:var(--leaf-mid); box-shadow:0 3px 10px rgba(5,150,105,0.25); }
@@ -1741,6 +1748,17 @@ export default function KNBPlatform() {
                   <div className="opc-spec">
                     <span className="opc-sk">Grade</span>
                     <span className="opc-sv" style={{color:"var(--gold)"}}>{p.grade.split("·")[0].trim()}</span>
+                  </div>
+                </div>
+                <div className="opc-bid-ask">
+                  <div className="opc-bid">
+                    <div className="opc-ba-lbl">Bid</div>
+                    <div className="opc-ba-val opc-green">₹{(adjPrice(p.price)-Math.round(p.price*0.002)).toLocaleString("en-IN")}</div>
+                  </div>
+                  <div className="opc-ba-divider"/>
+                  <div className="opc-ask">
+                    <div className="opc-ba-lbl">Ask</div>
+                    <div className="opc-ba-val opc-red">₹{(adjPrice(p.price)+Math.round(p.price*0.002)).toLocaleString("en-IN")}</div>
                   </div>
                 </div>
                 <div className="opc-actions" onClick={e=>e.stopPropagation()}>
