@@ -907,24 +907,6 @@ export default function KNBPlatform() {
     return unsub;
   }, []);
 
-  // ── reCAPTCHA: initialize ONCE on mount ──
-  useEffect(() => {
-    const init = async () => {
-      try {
-        if (captchaRef.current) return;
-        captchaRef.current = new RecaptchaVerifier(auth, "recaptcha-root", {
-          size: "invisible",
-          callback: () => {}
-        });
-        await captchaRef.current.render();
-      } catch(e) {
-        console.error("reCAPTCHA init:", e);
-        captchaRef.current = null;
-      }
-    };
-    init();
-  }, []);
-
   // ── OTP helper ──
   const fmtPhone = (p) => {
     const d = p.replace(/\D/g,"");
@@ -937,25 +919,31 @@ export default function KNBPlatform() {
     "auth/invalid-verification-code": "Wrong OTP. Please check the SMS and try again.",
     "auth/code-expired":              "OTP expired. Please go back and request a new one.",
     "auth/too-many-requests":         "Too many attempts. Please wait a few minutes and try again.",
-    "auth/unauthorized-domain":       "Domain not authorized. Ask admin to add site to Firebase.",
+    "auth/unauthorized-domain":       "Domain not authorized — ask admin to add this site to Firebase.",
     "auth/missing-phone-number":      "Please enter your mobile number.",
-    "auth/captcha-check-failed":      "Security check failed. Please refresh and try again.",
+    "auth/captcha-check-failed":      "Security check failed. Please refresh the page and try again.",
+    "auth/operation-not-allowed":     "Phone sign-in is not configured. Please contact KNB support at +91 99206 57193.",
   }[code] || `Error: ${code}. Please try again or call +91 99206 57193`);
 
-  // Get verifier — reuse existing, only recreate if cleared after error
-  const getVerifier = async () => {
-    if (!captchaRef.current) {
-      captchaRef.current = new RecaptchaVerifier(auth, "recaptcha-root", {
-        size: "invisible",
-        callback: () => {}
-      });
-      await captchaRef.current.render();
+  // ── reCAPTCHA: fresh verifier each time (avoids stale token issues) ──
+  const makeVerifier = () => {
+    // clear any leftover
+    if (window._knbCaptcha) {
+      try { window._knbCaptcha.clear(); } catch(_) {}
+      window._knbCaptcha = null;
     }
-    return captchaRef.current;
+    window._knbCaptcha = new RecaptchaVerifier(auth, "recaptcha-root", {
+      size: "invisible"
+    });
+    captchaRef.current = window._knbCaptcha;
+    return window._knbCaptcha;
   };
 
-  const resetVerifier = () => {
-    try { captchaRef.current?.clear(); } catch(e) {}
+  const clearVerifier = () => {
+    if (window._knbCaptcha) {
+      try { window._knbCaptcha.clear(); } catch(_) {}
+      window._knbCaptcha = null;
+    }
     captchaRef.current = null;
   };
 
@@ -966,13 +954,13 @@ export default function KNBPlatform() {
     }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = await getVerifier();
+      const verifier = makeVerifier();
       const result = await signInWithPhoneNumber(auth, fmtPhone(loginPhone), verifier);
       setLoginConfirm(result); setLoginOTPSent(true);
     } catch(e) {
-      console.error("Login OTP error:", e.code, e.message);
+      console.error("Login OTP error:", e.code, e.message, e);
       setAuthErr(getOTPErr(e.code));
-      resetVerifier();
+      clearVerifier();
     }
     setAuthBusy(false);
   };
@@ -1005,13 +993,13 @@ export default function KNBPlatform() {
     if (!regPhone || regPhone.replace(/\D/g,"").length < 10) { setAuthErr("Please enter a valid 10-digit mobile number."); return; }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = await getVerifier();
+      const verifier = makeVerifier();
       const result = await signInWithPhoneNumber(auth, fmtPhone(regPhone), verifier);
       setRegConfirm(result); setRegOTPSent(true); setRegStep(2);
     } catch(e) {
-      console.error("Register OTP error:", e.code, e.message);
+      console.error("Register OTP error:", e.code, e.message, e);
       setAuthErr(getOTPErr(e.code));
-      resetVerifier();
+      clearVerifier();
     }
     setAuthBusy(false);
   };
