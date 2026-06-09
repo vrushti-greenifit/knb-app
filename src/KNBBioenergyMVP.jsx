@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "./firebase";
 import { signOut, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-import { doc, setDoc, getDoc, addDoc, getDocs, updateDoc, collection, query, orderBy } from "firebase/firestore";
+import { doc, setDoc, getDoc, addDoc, getDocs, updateDoc, collection, query, orderBy, where } from "firebase/firestore";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap');`;
@@ -772,6 +772,27 @@ input, select, textarea { font-family: inherit; }
   .hero-trust { display:none; }
 }
 
+/* ── PRODUCTS SIDEBAR LAYOUT ── */
+.products-layout { display: flex; gap: 28px; align-items: flex-start; margin-top: 32px; }
+.filter-sidebar { width: 210px; flex-shrink: 0; background: white; border: 1px solid var(--border); border-radius: var(--r-md); padding: 20px; position: sticky; top: 90px; }
+.fsb-head { font-size: 14px; font-weight: 700; color: var(--soil); margin-bottom: 16px; display: flex; justify-content: space-between; align-items: center; }
+.fsb-clear-btn { font-size: 11px; color: var(--leaf); background: none; border: none; cursor: pointer; font-weight: 600; font-family: inherit; }
+.fsb-section { margin-bottom: 20px; }
+.fsb-label { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: 8px; }
+.fsb-opt { padding: 7px 10px; border-radius: 6px; font-size: 13px; color: var(--earth); cursor: pointer; transition: all .15s; }
+.fsb-opt:hover { background: var(--cream); }
+.fsb-active { background: var(--mint) !important; color: var(--leaf); font-weight: 600; }
+.fsb-search { display: flex; align-items: center; gap: 6px; border: 1px solid var(--border); border-radius: 8px; padding: 7px 10px; }
+.fsb-search input { border: none; outline: none; font-size: 13px; width: 100%; background: transparent; font-family: inherit; color: var(--soil); }
+.fsb-count { font-size: 11px; color: var(--text-muted); text-align: center; padding-top: 12px; border-top: 1px solid var(--border); }
+.products-main { flex: 1; min-width: 0; }
+.btn-call-sm { display:inline-flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:8px; background:var(--mint); border:1px solid rgba(46,107,53,0.2); font-size:16px; text-decoration:none; transition:all .2s; flex-shrink:0; }
+.btn-call-sm:hover { background: var(--leaf); }
+@media(max-width: 768px) {
+  .products-layout { flex-direction: column; }
+  .filter-sidebar { width: 100%; position: static; padding: 14px; }
+}
+
 /* ── ADMIN PANEL ── */
 .admin-wrap { max-width: 1100px; margin: 0 auto; padding: 40px clamp(16px,3vw,48px) 80px; }
 .admin-topbar { display:flex; align-items:center; justify-content:space-between; margin-bottom:32px; flex-wrap:wrap; gap:12px; }
@@ -848,7 +869,8 @@ const INIT_PRICES = [
   { id:"AWBRQ", name:"Agro Waste Briquettes",   short:"AW-BRQ", grade:"A · KNB Certified",  price:5600, open:5560, high:5640, low:5520, vol:280, cal:"3,800" },
 ];
 
-const BIOMASS_TYPES = ["Soyabean Husk","Rice","Corn Cob","Agro Waste Mix","Mustard","Sawdust","Groundnut","Other"];
+const BIOMASS_TYPES = ["Soyabean Husk","Rice Husk","Corn Cob","Agro Waste Mix","Mustard Stalk","Sawdust","Groundnut Shell","Sugarcane Bagasse","Cotton Stalk","Other"];
+const INDIA_STATES = ["Andhra Pradesh","Assam","Bihar","Chhattisgarh","Delhi","Goa","Gujarat","Haryana","Himachal Pradesh","Jharkhand","Karnataka","Kerala","Madhya Pradesh","Maharashtra","Manipur","Meghalaya","Odisha","Punjab","Rajasthan","Tamil Nadu","Telangana","Uttar Pradesh","Uttarakhand","West Bengal","Other"];
 
 const TAG_COLORS = { Briquette:"tag-brq", Pellet:"tag-pel", "Raw Biomass":"tag-raw" };
 
@@ -914,6 +936,12 @@ export default function KNBPlatform() {
   const [regIndustry, setRegIndustry] = useState("Textiles");
   const [regLocation, setRegLocation] = useState("");
   const [regRequirement, setRegRequirement] = useState("");
+  const [regState, setRegState]       = useState("");
+  const [regDistrict, setRegDistrict] = useState("");
+  const [regVillage, setRegVillage]   = useState("");
+  // ── My Orders ──
+  const [myOrders, setMyOrders]               = useState([]);
+  const [myOrdersLoading, setMyOrdersLoading] = useState(false);
 
   // ── Enquiry form (controlled inputs) ──
   const [enqName, setEnqName] = useState("");
@@ -979,6 +1007,25 @@ export default function KNBPlatform() {
   useEffect(() => {
     if (activeNav === "admin" && isAdmin) loadAdminData();
   }, [activeNav, isAdmin]);
+
+  // ── My Orders ──
+  const loadMyOrders = async () => {
+    if (!currentUser) return;
+    setMyOrdersLoading(true);
+    try {
+      const snap = await getDocs(query(
+        collection(db, "enquiries"),
+        where("userId", "==", currentUser.uid),
+        orderBy("createdAt", "desc")
+      ));
+      setMyOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch(e) { console.error("My orders:", e); }
+    setMyOrdersLoading(false);
+  };
+
+  useEffect(() => {
+    if (modal === "myorders" && currentUser) loadMyOrders();
+  }, [modal]);
 
   // ── OTP helper ──
   const fmtPhone = (p) => {
@@ -1091,13 +1138,15 @@ export default function KNBPlatform() {
       await setDoc(doc(db, "users", cred.user.uid), {
         name: regName, company: regCompany, phone: fmtPhone(regPhone),
         role: regRole, industry: regIndustry,
-        location: regLocation, requirement: regRequirement,
+        state: regState, district: regDistrict, village: regVillage,
+        location: regLocation || [regDistrict, regState].filter(Boolean).join(", "),
         biomass: selectedBiomass, createdAt: new Date().toISOString(),
       });
       setModal(null); setRegStep(1);
       setRegName(""); setRegCompany(""); setRegPhone("");
       setRegOTP(""); setRegOTPSent(false); setRegConfirm(null);
       setRegLocation(""); setRegRequirement("");
+      setRegState(""); setRegDistrict(""); setRegVillage("");
       showToast(`✓ Welcome to KNB, ${regName.split(" ")[0]}! Our team will be in touch.`);
     } catch(e) { setAuthErr(getOTPErr(e.code)); }
     setAuthBusy(false);
@@ -1212,9 +1261,10 @@ export default function KNBPlatform() {
         <div className="nav-right">
           {currentUser ? (
             <>
-              <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid rgba(46,107,53,0.15)"}}>
+              <button className="btn-ghost" style={{fontSize:12,padding:"6px 12px"}} onClick={() => setModal("myorders")}>📦 My Orders</button>
+              <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid rgba(46,107,53,0.15)",cursor:"pointer"}} onClick={() => setModal("myorders")}>
                 <div style={{width:26,height:26,borderRadius:"50%",background:"var(--leaf)",color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>
-                  {(userProfile?.name || currentUser.email || "U")[0].toUpperCase()}
+                  {(userProfile?.name || "U")[0].toUpperCase()}
                 </div>
                 <span style={{fontSize:12,color:"var(--leaf)",fontWeight:600,maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                   {userProfile?.name?.split(" ")[0] || "Account"}
@@ -1402,21 +1452,42 @@ export default function KNBPlatform() {
             </div>
           </div>
 
-          <div className="mkt-controls">
-            <div className="search-box">
-              <span style={{color:"var(--text-muted)",fontSize:16}}>🔍</span>
-              <input placeholder="Search by product name…" value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
+          <div className="products-layout">
+            {/* ── Sidebar Filters ── */}
+            <div className="filter-sidebar">
+              <div className="fsb-head">Filters
+                {(typeFilter!=="All"||certFilter||searchQ) &&
+                  <button className="fsb-clear-btn" onClick={()=>{setTypeFilter("All");setCertFilter(false);setSearchQ("");}}>Clear</button>}
+              </div>
+              <div className="fsb-section">
+                <div className="fsb-label">Search</div>
+                <div className="fsb-search">
+                  <span>🔍</span>
+                  <input placeholder="Product name…" value={searchQ} onChange={e=>setSearchQ(e.target.value)}/>
+                </div>
+              </div>
+              <div className="fsb-section">
+                <div className="fsb-label">Product Type</div>
+                {[["All","🌿 All Products"],["Briquette","🔥 Briquettes"],["Pellet","⚡ Pellets"],["Raw Biomass","🌾 Raw Biomass"]].map(([val,lbl])=>(
+                  <div key={val} className={`fsb-opt ${typeFilter===val?"fsb-active":""}`} onClick={()=>setTypeFilter(val)}>{lbl}</div>
+                ))}
+              </div>
+              <div className="fsb-section">
+                <div className="fsb-label">Quality</div>
+                <div className={`fsb-opt ${certFilter?"fsb-active":""}`} onClick={()=>setCertFilter(!certFilter)}>
+                  🏅 KNB Assured Only
+                </div>
+              </div>
+              <div className="fsb-count">{filteredProducts.length} product{filteredProducts.length!==1?"s":""} found</div>
             </div>
-            <div className="filter-row">
-              {TYPES.map(t => <div key={t} className={`chip ${typeFilter===t?"on":""}`} onClick={()=>setTypeFilter(t)}>{t}</div>)}
-              <div className={`chip ${certFilter?"on-harvest":""}`} onClick={()=>setCertFilter(!certFilter)}>🏅 KNB Assured</div>
-            </div>
-          </div>
+
+            {/* ── Products Main ── */}
+            <div className="products-main">
           {filteredProducts.length === 0 ? (
             <div style={{textAlign:"center",padding:"60px 0",color:"var(--text-muted)"}}>
               <div style={{fontSize:40,marginBottom:12}}>🔍</div>
               <div style={{fontSize:16,fontWeight:600}}>No products found</div>
-              <div style={{fontSize:14,marginTop:6}}>Try adjusting your search or filters</div>
+              <div style={{fontSize:14,marginTop:6}}>Try adjusting your filters</div>
             </div>
           ) : (
             <>
@@ -1449,7 +1520,13 @@ export default function KNBPlatform() {
                         <div className="prod-price-val">₹{p.price}<span className="prod-price-unit">/MT</span></div>
                         <div className="prod-moq">Min. {p.moq}</div>
                       </div>
-                      <button className="btn-enquire" onClick={() => handleEnquire(p)}>Get Quote</button>
+                      {currentUser
+                        ? <div style={{display:"flex",gap:5}}>
+                            <button className="btn-enquire" style={{background:"var(--leaf)",color:"white"}} onClick={() => handleEnquire(p)}>Place Order</button>
+                            <a href="tel:+919920657193" className="btn-call-sm" title="Call Sales">📞</a>
+                          </div>
+                        : <button className="btn-enquire" onClick={() => handleEnquire(p)}>Get Quote</button>
+                      }
                     </div>
                   </div>
                 ))}
@@ -1463,6 +1540,8 @@ export default function KNBPlatform() {
               )}
             </>
           )}
+            </div>{/* end products-main */}
+          </div>{/* end products-layout */}
         </div>
       </section>
       </>}{/* END PRODUCTS */}
@@ -1915,8 +1994,59 @@ export default function KNBPlatform() {
         </div>
       </footer>
 
+      {/* ── MY ORDERS MODAL ── */}
+      {modal === "myorders" && (
+        <div className="overlay" onClick={e => e.target===e.currentTarget && setModal(null)}>
+          <div className="modal-box" style={{maxWidth:700,width:"100%"}}>
+            <div className="modal-hd">
+              <div><div className="modal-title">📦 My Orders</div><div className="modal-sub">Your submitted enquiries & orders</div></div>
+              <button className="modal-close" onClick={() => setModal(null)}>×</button>
+            </div>
+            {myOrdersLoading ? (
+              <div style={{textAlign:"center",padding:"40px 0",color:"var(--text-muted)"}}>Loading your orders…</div>
+            ) : myOrders.length === 0 ? (
+              <div style={{textAlign:"center",padding:"40px 0"}}>
+                <div style={{fontSize:40,marginBottom:12}}>📭</div>
+                <div style={{fontSize:16,fontWeight:600,color:"var(--soil)"}}>No orders yet</div>
+                <div style={{fontSize:13,color:"var(--text-muted)",marginTop:6}}>Browse products and click "Place Order" to get started</div>
+                <button className="btn-primary" style={{marginTop:20}} onClick={() => { setModal(null); navTo("products"); }}>Browse Products →</button>
+              </div>
+            ) : (
+              <div style={{display:"flex",flexDirection:"column",gap:10,maxHeight:"60vh",overflowY:"auto"}}>
+                {myOrders.map(o => (
+                  <div key={o.id} style={{border:"1px solid var(--border)",borderRadius:10,padding:"14px 16px",background:"#faf9f7"}}>
+                    <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
+                      <div>
+                        <div style={{fontWeight:700,fontSize:15,color:"var(--soil)"}}>{o.product || "General Enquiry"}</div>
+                        <div style={{fontSize:12,color:"var(--text-muted)",marginTop:3}}>
+                          {o.createdAt ? new Date(o.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : "—"}
+                          {o.qty ? ` · ${o.qty}` : ""}
+                          {o.location ? ` · ${o.location}` : ""}
+                        </div>
+                      </div>
+                      <span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700,background:o.status==="handled"?"#d1eddd":"#fff3cd",color:o.status==="handled"?"#1a6b32":"#856404"}}>
+                        {o.status==="handled"?"✓ Responded":"⏳ Pending"}
+                      </span>
+                    </div>
+                    {o.message && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:8,paddingTop:8,borderTop:"1px solid var(--border)"}}>{o.message}</div>}
+                    <div style={{marginTop:10,display:"flex",gap:8}}>
+                      <a href="tel:+919920657193" style={{fontSize:12,color:"var(--leaf)",fontWeight:600,textDecoration:"none"}}>📞 Call +91 99206 57193</a>
+                      <span style={{color:"var(--border)"}}>·</span>
+                      <a href="https://wa.me/919920657193" target="_blank" rel="noreferrer" style={{fontSize:12,color:"#25d366",fontWeight:600,textDecoration:"none"}}>💬 WhatsApp</a>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+            <div style={{marginTop:16,textAlign:"center",fontSize:12,color:"var(--text-muted)"}}>
+              Need help? Call <strong>+91 99206 57193</strong> or <a href="https://wa.me/919920657193" target="_blank" rel="noreferrer" style={{color:"var(--leaf)"}}>WhatsApp us</a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── MODALS ── */}
-      {modal && (
+      {modal && modal !== "myorders" && (
         <div className="overlay" onClick={e => e.target===e.currentTarget && (setModal(null), setRegStep(1), setAuthErr(""))}>
           <div className="modal-box" style={modal==="register" && regRole==="farmer" ? {background:"var(--bark)"} : {}}>
 
@@ -2013,38 +2143,28 @@ export default function KNBPlatform() {
                 {/* ─ Step 1: Info + Send OTP ─ */}
                 {regStep === 1 && (
                   <div>
-                    <div className="modal-row">
-                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Full Name *</label>
-                        <input placeholder="Your full name" value={regName} onChange={e=>setRegName(e.target.value)}/>
-                      </div>
-                      <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>{regRole==="farmer"?"Village / Farm":"Company Name"}</label>
-                        <input placeholder={regRole==="farmer"?"Village, District":"Company name"} value={regCompany} onChange={e=>setRegCompany(e.target.value)}/>
-                      </div>
+                    {/* Full Name */}
+                    <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Full Name *</label>
+                      <input placeholder="Your full name" value={regName} onChange={e=>setRegName(e.target.value)}/>
                     </div>
-                    {regRole === "buyer" && (
+
+                    {/* Farmer: State → District → Village */}
+                    {regRole === "farmer" && (<>
                       <div className="modal-row">
-                        <div className="mf"><label>Industry</label>
-                          <select value={regIndustry} onChange={e=>setRegIndustry(e.target.value)}>
-                            {["Textiles","Chemicals","Cement","Paper & Pulp","Food Processing","Ceramics","Pharma","Steel / Foundry","Other"].map(x=><option key={x}>{x}</option>)}
+                        <div className="mf mf-dark"><label>State *</label>
+                          <select value={regState} onChange={e=>setRegState(e.target.value)} style={{background:"rgba(255,255,255,0.07)",color:"white",border:"1px solid rgba(255,255,255,0.15)"}}>
+                            <option value="">Select State</option>
+                            {INDIA_STATES.map(s=><option key={s} style={{color:"#000"}}>{s}</option>)}
                           </select>
                         </div>
-                        <div className="mf"><label>Annual Requirement (MT)</label>
-                          <input type="number" placeholder="e.g. 2400" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
+                        <div className="mf mf-dark"><label>District *</label>
+                          <input placeholder="e.g. Akola" value={regDistrict} onChange={e=>setRegDistrict(e.target.value)}/>
                         </div>
                       </div>
-                    )}
-                    {regRole === "supplier" && (
-                      <div className="modal-row">
-                        <div className="mf"><label>Monthly Capacity (MT)</label>
-                          <input type="number" placeholder="e.g. 500" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
-                        </div>
-                        <div className="mf"><label>Manufacturing Location</label>
-                          <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
-                        </div>
+                      <div className="mf mf-dark"><label>Village / Taluka</label>
+                        <input placeholder="e.g. Murtizapur" value={regVillage} onChange={e=>setRegVillage(e.target.value)}/>
                       </div>
-                    )}
-                    {regRole === "farmer" && (
-                      <div className={`mf mf-dark`}><label>Available Biomass (select all)</label>
+                      <div className="mf mf-dark"><label>Available Biomass <span style={{fontWeight:400,opacity:.6}}>(select all that apply)</span></label>
                         <div className="biomass-picker" style={{marginTop:6}}>
                           {BIOMASS_TYPES.map(b => (
                             <div key={b} className={`biomass-opt ${selectedBiomass.includes(b)?"sel":""}`}
@@ -2052,7 +2172,39 @@ export default function KNBPlatform() {
                           ))}
                         </div>
                       </div>
-                    )}
+                    </>)}
+
+                    {/* Buyer: Company + Industry + City */}
+                    {regRole === "buyer" && (<>
+                      <div className="modal-row">
+                        <div className="mf"><label>Company Name</label>
+                          <input placeholder="Your company name" value={regCompany} onChange={e=>setRegCompany(e.target.value)}/>
+                        </div>
+                        <div className="mf"><label>Industry</label>
+                          <select value={regIndustry} onChange={e=>setRegIndustry(e.target.value)}>
+                            {["Textiles","Chemicals","Cement","Paper & Pulp","Food Processing","Ceramics","Pharma","Steel / Foundry","Other"].map(x=><option key={x}>{x}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div className="mf"><label>City / State</label>
+                        <input placeholder="e.g. Mumbai, Maharashtra" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                      </div>
+                    </>)}
+
+                    {/* Supplier: Company + Capacity + Location */}
+                    {regRole === "supplier" && (<>
+                      <div className="modal-row">
+                        <div className="mf"><label>Company Name</label>
+                          <input placeholder="Your company name" value={regCompany} onChange={e=>setRegCompany(e.target.value)}/>
+                        </div>
+                        <div className="mf"><label>Monthly Capacity (MT)</label>
+                          <input type="number" placeholder="e.g. 500" value={regRequirement} onChange={e=>setRegRequirement(e.target.value)}/>
+                        </div>
+                      </div>
+                      <div className="mf"><label>Manufacturing Location</label>
+                        <input placeholder="City, State" value={regLocation} onChange={e=>setRegLocation(e.target.value)}/>
+                      </div>
+                    </>)}
                     <div className={`mf ${regRole==="farmer"?"mf-dark":""}`}><label>Mobile Number * (OTP will be sent)</label>
                       <input placeholder="98765 43210" value={regPhone} onChange={e=>setRegPhone(e.target.value)} style={{fontSize:17,letterSpacing:"1px"}}/>
                       <div style={{fontSize:11,color:regRole==="farmer"?"rgba(255,255,255,0.35)":"var(--text-muted)",marginTop:4}}>+91 added automatically</div>
