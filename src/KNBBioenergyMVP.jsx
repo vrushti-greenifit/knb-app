@@ -1186,9 +1186,14 @@ export default function KNBPlatform() {
     if (el) el.innerHTML = "";
   };
 
-  const makeVerifier = () => {
+  const makeVerifier = async () => {
     clearVerifier();
-    const v = new RecaptchaVerifier(auth, "recaptcha-root", { size: "invisible" });
+    const v = new RecaptchaVerifier(auth, "recaptcha-root", {
+      size: "invisible",
+      callback: () => {},
+      "expired-callback": () => { clearVerifier(); },
+    });
+    await v.render(); // ensure widget fully initialises before use
     window._knbCaptcha = v;
     captchaRef.current = v;
     return v;
@@ -1201,7 +1206,7 @@ export default function KNBPlatform() {
     }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = makeVerifier();
+      const verifier = await makeVerifier();
       const result = await signInWithPhoneNumber(auth, fmtPhone(loginPhone), verifier);
       setLoginConfirm(result); setLoginOTPSent(true);
     } catch(e) {
@@ -1240,7 +1245,7 @@ export default function KNBPlatform() {
     if (!regPhone || regPhone.replace(/\D/g,"").length < 10) { setAuthErr("Please enter a valid 10-digit mobile number."); return; }
     setAuthErr(""); setAuthBusy(true);
     try {
-      const verifier = makeVerifier();
+      const verifier = await makeVerifier();
       const result = await signInWithPhoneNumber(auth, fmtPhone(regPhone), verifier);
       setRegConfirm(result); setRegOTPSent(true); setRegStep(2);
     } catch(e) {

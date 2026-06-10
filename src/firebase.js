@@ -15,7 +15,3 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 export const auth = getAuth(app);
 export const db = getFirestore(app);
-
-// Bypass reCAPTCHA Enterprise conflict — allows test phone numbers to work.
-// Remove this line once reCAPTCHA Enterprise is disabled in Firebase Console.
-auth.settings.appVerificationDisabledForTesting = true;
