@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { auth, db } from "./firebase";
 import { signOut, onAuthStateChanged, signInWithPhoneNumber, RecaptchaVerifier } from "firebase/auth";
-import { doc, setDoc, getDoc, addDoc, getDocs, updateDoc, collection, query, orderBy, where } from "firebase/firestore";
+import { doc, setDoc, getDoc, addDoc, getDocs, updateDoc, deleteDoc, collection, query, orderBy, where } from "firebase/firestore";
 
 /* ─── FONTS & GLOBAL ─────────────────────────────────────────── */
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,300;12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&family=Instrument+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Instrument+Serif:ital@0;1&display=swap');`;
@@ -1043,6 +1043,17 @@ export default function KNBPlatform() {
   const [myOrders, setMyOrders]               = useState([]);
   const [myOrdersLoading, setMyOrdersLoading] = useState(false);
 
+  // ── Farmer Listings ──
+  const [myListings, setMyListings]           = useState([]);
+  const [myListingsLoading, setMyListingsLoading] = useState(false);
+  const [listingTab, setListingTab]           = useState("listings");
+  const [newListingProduct, setNewListingProduct] = useState("Paddy Straw");
+  const [newListingQty, setNewListingQty]     = useState("");
+  const [newListingUnit, setNewListingUnit]   = useState("MT");
+  const [newListingPrice, setNewListingPrice] = useState("");
+  const [newListingDesc, setNewListingDesc]   = useState("");
+  const [listingBusy, setListingBusy]         = useState(false);
+
   // ── Enquiry form (controlled inputs) ──
   const [enqName, setEnqName] = useState("");
   const [enqCompany, setEnqCompany] = useState("");
@@ -1125,6 +1136,79 @@ export default function KNBPlatform() {
 
   useEffect(() => {
     if (modal === "myorders" && currentUser) loadMyOrders();
+  }, [modal]);
+
+  // ── Farmer Listings ──
+  const BIOMASS_PRODUCTS = [
+    "Paddy Straw","Sugarcane Bagasse","Cotton Stalks","Mustard Stalk",
+    "Wheat Straw","Rice Husk","Corn Cob","Groundnut Shell",
+    "Bamboo Waste","Saw Dust","Wood Chips","Other",
+  ];
+
+  const loadMyListings = async () => {
+    if (!currentUser) return;
+    setMyListingsLoading(true);
+    try {
+      const snap = await getDocs(query(
+        collection(db, "listings"),
+        where("uid", "==", currentUser.uid),
+        orderBy("createdAt", "desc")
+      ));
+      setMyListings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+    } catch(e) { console.error("My listings:", e); }
+    setMyListingsLoading(false);
+  };
+
+  const addListing = async () => {
+    if (!newListingQty || !newListingPrice) {
+      showToast("Please fill in quantity and price."); return;
+    }
+    setListingBusy(true);
+    try {
+      await addDoc(collection(db, "listings"), {
+        uid: currentUser.uid,
+        farmerName: userProfile?.name || "",
+        farmerPhone: userProfile?.phone || "",
+        product: newListingProduct,
+        qty: newListingQty,
+        qtyUnit: newListingUnit,
+        pricePerUnit: newListingPrice,
+        description: newListingDesc,
+        state: userProfile?.state || "",
+        district: userProfile?.district || "",
+        village: userProfile?.village || "",
+        available: true,
+        createdAt: new Date().toISOString(),
+      });
+      showToast(`✓ ${newListingProduct} listed successfully!`);
+      setNewListingQty(""); setNewListingPrice(""); setNewListingDesc("");
+      setListingTab("listings");
+      loadMyListings();
+    } catch(e) { showToast("❌ Failed to add listing. Try again."); }
+    setListingBusy(false);
+  };
+
+  const deleteListing = async (id) => {
+    if (!window.confirm("Delete this listing?")) return;
+    try {
+      await deleteDoc(doc(db, "listings", id));
+      setMyListings(prev => prev.filter(l => l.id !== id));
+      showToast("Listing removed.");
+    } catch(e) { showToast("❌ Delete failed."); }
+  };
+
+  const toggleAvailability = async (id, current) => {
+    try {
+      await updateDoc(doc(db, "listings", id), { available: !current });
+      setMyListings(prev => prev.map(l => l.id === id ? { ...l, available: !current } : l));
+    } catch(e) { showToast("❌ Update failed."); }
+  };
+
+  useEffect(() => {
+    if (modal === "farmer-dashboard" && currentUser) {
+      setListingTab("listings");
+      loadMyListings();
+    }
   }, [modal]);
 
   // ── Price helpers ──
@@ -1409,12 +1493,19 @@ export default function KNBPlatform() {
         <div className="nav-right">
           {currentUser ? (
             <>
-              <button className="btn-ghost" style={{fontSize:12,padding:"6px 12px"}} onClick={() => setModal("myorders")}>📦 My Orders</button>
-              <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid #a7f3d0",cursor:"pointer"}} onClick={() => setModal("myorders")}>
-                <div style={{width:26,height:26,borderRadius:"50%",background:"var(--leaf)",color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>
+              {userProfile?.role === "farmer" ? (
+                <button className="btn-ghost" style={{fontSize:12,padding:"6px 12px",color:"var(--gold)",borderColor:"var(--gold)"}}
+                  onClick={() => setModal("farmer-dashboard")}>🌾 My Dashboard</button>
+              ) : (
+                <button className="btn-ghost" style={{fontSize:12,padding:"6px 12px"}}
+                  onClick={() => setModal("myorders")}>📦 My Orders</button>
+              )}
+              <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid #a7f3d0",cursor:"pointer"}}
+                onClick={() => setModal(userProfile?.role === "farmer" ? "farmer-dashboard" : "myorders")}>
+                <div style={{width:26,height:26,borderRadius:"50%",background: userProfile?.role==="farmer" ? "var(--gold)" : "var(--leaf)",color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>
                   {(userProfile?.name || "U")[0].toUpperCase()}
                 </div>
-                <span style={{fontSize:12,color:"var(--leaf)",fontWeight:600,maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
+                <span style={{fontSize:12,color: userProfile?.role==="farmer" ? "var(--gold)" : "var(--leaf)",fontWeight:600,maxWidth:100,overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>
                   {userProfile?.name?.split(" ")[0] || "Account"}
                 </span>
               </div>
@@ -2271,6 +2362,139 @@ export default function KNBPlatform() {
         </div>
       </footer>
 
+      {/* ── FARMER DASHBOARD MODAL ── */}
+      {modal === "farmer-dashboard" && (
+        <div className="overlay" onClick={e => e.target===e.currentTarget && setModal(null)}>
+          <div className="modal-box" style={{maxWidth:680,width:"100%"}}>
+            <div className="modal-hd">
+              <div>
+                <div className="modal-title">🌾 My Farm Dashboard</div>
+                <div className="modal-sub">{userProfile?.name} · {[userProfile?.village, userProfile?.district, userProfile?.state].filter(Boolean).join(", ")}</div>
+              </div>
+              <button className="modal-close" onClick={() => setModal(null)}>×</button>
+            </div>
+
+            {/* Tabs */}
+            <div style={{display:"flex",gap:8,marginBottom:20,borderBottom:"1px solid var(--border)",paddingBottom:12}}>
+              <button onClick={() => setListingTab("listings")}
+                style={{padding:"7px 18px",borderRadius:20,border:"none",cursor:"pointer",fontSize:13,fontWeight:600,
+                  background: listingTab==="listings" ? "var(--gold)" : "var(--cream)",
+                  color: listingTab==="listings" ? "#fff" : "var(--text-muted)"}}>
+                📋 My Listings {myListings.length > 0 && `(${myListings.length})`}
+              </button>
+              <button onClick={() => setListingTab("add")}
+                style={{padding:"7px 18px",borderRadius:20,border:"none",cursor:"pointer",fontSize:13,fontWeight:600,
+                  background: listingTab==="add" ? "var(--leaf)" : "var(--cream)",
+                  color: listingTab==="add" ? "#fff" : "var(--text-muted)"}}>
+                + Add New Listing
+              </button>
+            </div>
+
+            {/* ── MY LISTINGS TAB ── */}
+            {listingTab === "listings" && (
+              myListingsLoading ? (
+                <div style={{textAlign:"center",padding:"40px 0",color:"var(--text-muted)"}}>Loading your listings…</div>
+              ) : myListings.length === 0 ? (
+                <div style={{textAlign:"center",padding:"40px 0"}}>
+                  <div style={{fontSize:44,marginBottom:12}}>🌱</div>
+                  <div style={{fontSize:16,fontWeight:700,color:"var(--soil)"}}>No listings yet</div>
+                  <div style={{fontSize:13,color:"var(--text-muted)",marginTop:6}}>Add your first biomass listing so buyers can find you</div>
+                  <button onClick={() => setListingTab("add")}
+                    style={{marginTop:16,padding:"10px 28px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer"}}>
+                    + Add First Listing
+                  </button>
+                </div>
+              ) : (
+                <div style={{display:"flex",flexDirection:"column",gap:12,maxHeight:"58vh",overflowY:"auto"}}>
+                  {myListings.map(l => (
+                    <div key={l.id} style={{border:`1.5px solid ${l.available ? "#a7f3d0" : "var(--border)"}`,borderRadius:10,padding:"14px 16px",background: l.available ? "#f0fdf4" : "var(--cream)"}}>
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
+                        <div>
+                          <div style={{fontWeight:700,fontSize:15,color:"var(--soil)"}}>{l.product}</div>
+                          <div style={{fontSize:13,color:"var(--text-muted)",marginTop:3}}>
+                            {l.qty} {l.qtyUnit} &nbsp;·&nbsp; ₹{Number(l.pricePerUnit).toLocaleString("en-IN")}/{l.qtyUnit}
+                            {l.district && <>&nbsp;·&nbsp; {l.district}, {l.state}</>}
+                          </div>
+                          {l.description && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:4}}>{l.description}</div>}
+                        </div>
+                        <span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700,flexShrink:0,
+                          background: l.available ? "#d1fae5" : "#f3f4f6",
+                          color: l.available ? "#065f46" : "var(--text-muted)"}}>
+                          {l.available ? "✅ Available" : "⏸ Unavailable"}
+                        </span>
+                      </div>
+                      <div style={{marginTop:12,display:"flex",gap:8,flexWrap:"wrap"}}>
+                        <button onClick={() => toggleAvailability(l.id, l.available)}
+                          style={{padding:"5px 14px",borderRadius:6,border:"1.5px solid var(--border)",background:"#fff",color:"var(--soil)",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                          {l.available ? "Mark Unavailable" : "Mark Available"}
+                        </button>
+                        <button onClick={() => deleteListing(l.id)}
+                          style={{padding:"5px 14px",borderRadius:6,border:"1.5px solid #fecaca",background:"#fff5f5",color:"#c0392b",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                          🗑 Delete
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )
+            )}
+
+            {/* ── ADD LISTING TAB ── */}
+            {listingTab === "add" && (
+              <div style={{display:"flex",flexDirection:"column",gap:14}}>
+                <div style={{background:"var(--mint)",border:"1px solid #a7f3d0",borderRadius:8,padding:"10px 14px",fontSize:12,color:"#065f46"}}>
+                  📍 Listing will show your location: <strong>{[userProfile?.village, userProfile?.district, userProfile?.state].filter(Boolean).join(", ") || "as per your profile"}</strong>
+                </div>
+
+                <div className="mf">
+                  <label>Biomass Product Type</label>
+                  <select value={newListingProduct} onChange={e => setNewListingProduct(e.target.value)}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",color:"var(--soil)"}}>
+                    {BIOMASS_PRODUCTS.map(p => <option key={p} value={p}>{p}</option>)}
+                  </select>
+                </div>
+
+                <div style={{display:"grid",gridTemplateColumns:"1fr 120px",gap:10}}>
+                  <div className="mf">
+                    <label>Quantity Available</label>
+                    <input type="number" placeholder="e.g. 50" value={newListingQty} onChange={e => setNewListingQty(e.target.value)}
+                      style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",color:"var(--soil)",boxSizing:"border-box"}}/>
+                  </div>
+                  <div className="mf">
+                    <label>Unit</label>
+                    <select value={newListingUnit} onChange={e => setNewListingUnit(e.target.value)}
+                      style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",color:"var(--soil)"}}>
+                      {["MT","Quintal","Tonne","Kg","Truck Load"].map(u => <option key={u}>{u}</option>)}
+                    </select>
+                  </div>
+                </div>
+
+                <div className="mf">
+                  <label>Your Price (₹ per {newListingUnit})</label>
+                  <input type="number" placeholder="e.g. 1200" value={newListingPrice} onChange={e => setNewListingPrice(e.target.value)}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",color:"var(--soil)",boxSizing:"border-box"}}/>
+                </div>
+
+                <div className="mf">
+                  <label>Additional Details (optional)</label>
+                  <textarea placeholder="Quality grade, moisture content, harvesting time, etc." value={newListingDesc} onChange={e => setNewListingDesc(e.target.value)} rows={3}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:13,background:"#fff",color:"var(--soil)",resize:"vertical",fontFamily:"inherit",boxSizing:"border-box"}}/>
+                </div>
+
+                <button onClick={addListing} disabled={listingBusy}
+                  style={{padding:"13px",borderRadius:8,border:"none",background: listingBusy ? "var(--wheat)" : "var(--leaf)",color:"#fff",fontSize:15,fontWeight:700,cursor: listingBusy ? "not-allowed" : "pointer"}}>
+                  {listingBusy ? "Submitting…" : "Submit Listing →"}
+                </button>
+              </div>
+            )}
+
+            <div style={{marginTop:16,textAlign:"center",fontSize:12,color:"var(--text-muted)"}}>
+              Questions? Call <strong>+91 99206 57193</strong> or <a href="https://wa.me/919920657193" target="_blank" rel="noreferrer" style={{color:"var(--leaf)"}}>WhatsApp KNB team</a>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ── MY ORDERS MODAL ── */}
       {modal === "myorders" && (
         <div className="overlay" onClick={e => e.target===e.currentTarget && setModal(null)}>
@@ -2323,7 +2547,7 @@ export default function KNBPlatform() {
       )}
 
       {/* ── MODALS ── */}
-      {modal && modal !== "myorders" && (
+      {modal && modal !== "myorders" && modal !== "farmer-dashboard" && (
         <div className="overlay" onClick={e => e.target===e.currentTarget && (setModal(null), setRegStep(1), setAuthErr(""))}>
           <div className="modal-box" style={modal==="register" && regRole==="farmer" ? {background:"var(--bark)"} : {}}>
 
