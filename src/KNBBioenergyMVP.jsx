@@ -1169,7 +1169,7 @@ export default function KNBPlatform() {
     }
     setListingBusy(true);
     try {
-      await addDoc(collection(db, "listings"), {
+      const data = {
         uid: currentUser.uid,
         farmerName: userProfile?.name || "",
         farmerPhone: userProfile?.phone || "",
@@ -1183,12 +1183,17 @@ export default function KNBPlatform() {
         village: userProfile?.village || "",
         available: true,
         createdAt: new Date().toISOString(),
-      });
+      };
+      const ref = await addDoc(collection(db, "listings"), data);
+      // Optimistic update — show immediately without waiting for Firestore propagation
+      setMyListings(prev => [{ id: ref.id, ...data }, ...prev]);
       showToast(`✓ ${newListingProduct} listed successfully!`);
       setNewListingQty(""); setNewListingPrice(""); setNewListingDesc("");
       setListingTab("listings");
-      loadMyListings();
-    } catch(e) { showToast("❌ Failed to add listing. Try again."); }
+    } catch(e) {
+      console.error("addListing error:", e);
+      showToast("❌ Failed to add listing: " + (e?.code || e?.message || "unknown"));
+    }
     setListingBusy(false);
   };
 
