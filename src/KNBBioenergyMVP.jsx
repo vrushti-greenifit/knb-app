@@ -1149,7 +1149,6 @@ export default function KNBPlatform() {
     if (!currentUser) return;
     setMyListingsLoading(true);
     try {
-      // No orderBy — avoids needing a composite Firestore index; sort client-side instead
       const snap = await getDocs(query(
         collection(db, "listings"),
         where("uid", "==", currentUser.uid)
@@ -1157,7 +1156,10 @@ export default function KNBPlatform() {
       const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
       setMyListings(docs);
-    } catch(e) { console.error("My listings:", e); }
+    } catch(e) {
+      console.error("My listings error:", e);
+      showToast("❌ Could not load listings: " + (e?.code || e?.message || "unknown error"));
+    }
     setMyListingsLoading(false);
   };
 
@@ -2377,8 +2379,8 @@ export default function KNBPlatform() {
             </div>
 
             {/* Tabs */}
-            <div style={{display:"flex",gap:8,marginBottom:20,borderBottom:"1px solid var(--border)",paddingBottom:12}}>
-              <button onClick={() => setListingTab("listings")}
+            <div style={{display:"flex",gap:8,marginBottom:20,borderBottom:"1px solid var(--border)",paddingBottom:12,alignItems:"center"}}>
+              <button onClick={() => { setListingTab("listings"); loadMyListings(); }}
                 style={{padding:"7px 18px",borderRadius:20,border:"none",cursor:"pointer",fontSize:13,fontWeight:600,
                   background: listingTab==="listings" ? "var(--gold)" : "var(--cream)",
                   color: listingTab==="listings" ? "#fff" : "var(--text-muted)"}}>
@@ -2389,6 +2391,10 @@ export default function KNBPlatform() {
                   background: listingTab==="add" ? "var(--leaf)" : "var(--cream)",
                   color: listingTab==="add" ? "#fff" : "var(--text-muted)"}}>
                 + Add New Listing
+              </button>
+              <button onClick={loadMyListings} title="Refresh listings"
+                style={{marginLeft:"auto",padding:"6px 12px",borderRadius:20,border:"1.5px solid var(--border)",background:"#fff",color:"var(--text-muted)",fontSize:13,cursor:"pointer"}}>
+                ↻
               </button>
             </div>
 
@@ -2401,10 +2407,16 @@ export default function KNBPlatform() {
                   <div style={{fontSize:44,marginBottom:12}}>🌱</div>
                   <div style={{fontSize:16,fontWeight:700,color:"var(--soil)"}}>No listings yet</div>
                   <div style={{fontSize:13,color:"var(--text-muted)",marginTop:6}}>Add your first biomass listing so buyers can find you</div>
-                  <button onClick={() => setListingTab("add")}
-                    style={{marginTop:16,padding:"10px 28px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer"}}>
-                    + Add First Listing
-                  </button>
+                  <div style={{display:"flex",gap:10,justifyContent:"center",marginTop:16}}>
+                    <button onClick={() => setListingTab("add")}
+                      style={{padding:"10px 28px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer"}}>
+                      + Add First Listing
+                    </button>
+                    <button onClick={loadMyListings}
+                      style={{padding:"10px 18px",borderRadius:8,border:"1.5px solid var(--border)",background:"#fff",color:"var(--soil)",fontWeight:600,fontSize:14,cursor:"pointer"}}>
+                      ↻ Refresh
+                    </button>
+                  </div>
                 </div>
               ) : (
                 <div style={{display:"flex",flexDirection:"column",gap:12,maxHeight:"58vh",overflowY:"auto"}}>
