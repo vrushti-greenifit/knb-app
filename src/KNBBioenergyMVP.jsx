@@ -1181,19 +1181,25 @@ export default function KNBPlatform() {
     try { window._knbCaptcha?.clear(); } catch(_) {}
     window._knbCaptcha = null;
     captchaRef.current = null;
-    // Manually wipe the container so the next RecaptchaVerifier can render fresh
-    const el = document.getElementById("recaptcha-root");
-    if (el) el.innerHTML = "";
+    // Remove the entire element and create a fresh one —
+    // clearing innerHTML is NOT enough; Google's reCAPTCHA keeps internal
+    // state tied to the element reference and throws "already rendered".
+    const old = document.getElementById("recaptcha-root");
+    if (old) old.remove();
+    const fresh = document.createElement("div");
+    fresh.id = "recaptcha-root";
+    fresh.style.cssText = "position:fixed;bottom:0;left:0;z-index:9999;";
+    document.body.appendChild(fresh);
   };
 
   const makeVerifier = async () => {
-    clearVerifier();
+    clearVerifier(); // always start with a brand-new DOM node
     const v = new RecaptchaVerifier(auth, "recaptcha-root", {
       size: "invisible",
       callback: () => {},
       "expired-callback": () => { clearVerifier(); },
     });
-    await v.render(); // ensure widget fully initialises before use
+    await v.render();
     window._knbCaptcha = v;
     captchaRef.current = v;
     return v;
@@ -2583,8 +2589,7 @@ export default function KNBPlatform() {
       )}
 
       {toast && <div className="toast">{toast}</div>}
-      {/* reCAPTCHA container — must be in DOM at all times for Firebase Phone Auth */}
-      <div id="recaptcha-root" style={{position:"fixed",bottom:0,left:0,zIndex:9999}}/>
+      {/* recaptcha-root is created/destroyed dynamically in clearVerifier() */}
 
       {/* ── PRICE CHART MODAL ── */}
       {selectedPrice && (
