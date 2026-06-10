@@ -1149,12 +1149,14 @@ export default function KNBPlatform() {
     if (!currentUser) return;
     setMyListingsLoading(true);
     try {
+      // No orderBy — avoids needing a composite Firestore index; sort client-side instead
       const snap = await getDocs(query(
         collection(db, "listings"),
-        where("uid", "==", currentUser.uid),
-        orderBy("createdAt", "desc")
+        where("uid", "==", currentUser.uid)
       ));
-      setMyListings(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setMyListings(docs);
     } catch(e) { console.error("My listings:", e); }
     setMyListingsLoading(false);
   };
