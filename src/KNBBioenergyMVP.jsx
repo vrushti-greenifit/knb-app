@@ -1205,6 +1205,21 @@ export default function KNBPlatform() {
       setAuthErr("Please enter a valid 10-digit mobile number."); return;
     }
     setAuthErr(""); setAuthBusy(true);
+
+    // Check registration BEFORE wasting an OTP SMS
+    try {
+      const q = query(collection(db, "users"), where("phone", "==", fmtPhone(loginPhone)));
+      const snap = await getDocs(q);
+      if (snap.empty) {
+        setAuthErr("This number is not registered. Please click 'New here? Register' to create an account.");
+        setAuthBusy(false);
+        return;
+      }
+    } catch(e) {
+      // If Firestore check fails, proceed anyway — don't block a real user
+      console.warn("Pre-login check failed:", e);
+    }
+
     try {
       const verifier = await makeVerifier();
       const result = await signInWithPhoneNumber(auth, fmtPhone(loginPhone), verifier);
@@ -1230,12 +1245,12 @@ export default function KNBPlatform() {
         setLoginPhone(""); setLoginOTP(""); setLoginOTPSent(false); setLoginConfirm(null);
         showToast(`✓ Welcome back, ${snap.data().name?.split(" ")[0]}!`);
       } else {
-        // Phone not registered — sign them out and ask to register
+        // Shouldn't reach here (pre-checked before OTP), but handle gracefully
         await signOut(auth);
-        setAuthErr("❌ This number is not registered. Please click 'New here? Register' to create an account.");
+        setAuthErr("Account not found. Please register first.");
         setLoginOTPSent(false); setLoginOTP("");
       }
-    } catch(e) { setAuthErr(getOTPErr(e.code)); }
+    } catch(e) { setAuthErr(getOTPErr(e.code ?? e)); }
     setAuthBusy(false);
   };
 
