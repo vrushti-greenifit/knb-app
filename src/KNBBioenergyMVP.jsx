@@ -1168,7 +1168,7 @@ export default function KNBPlatform() {
       "auth/missing-phone-number":      "Please enter your mobile number.",
       "auth/captcha-check-failed":      "Security check failed. Refresh the page and try again.",
       "auth/operation-not-allowed":     "Phone sign-in not enabled. Contact +91 99206 57193.",
-      "auth/billing-not-enabled":       "Billing not enabled on Firebase project. Contact +91 99206 57193.",
+      "auth/billing-not-enabled":       "OTP service temporarily unavailable. WhatsApp us at +91 99206 57193 to place your order directly.",
       "auth/network-request-failed":    "Network error. Check your internet and try again.",
     }[code];
     if (known) return known;
