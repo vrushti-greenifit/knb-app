@@ -902,6 +902,39 @@ input, select, textarea { font-family: inherit; }
 `;
 
 /* ─── DATA ─────────────────────────────────────────────────── */
+
+const prodEmoji = (name="") => {
+  if (name.includes("Soyabean") || name.includes("Soybean")) return "🌿";
+  if (name.includes("Groundnut")) return "🥜";
+  if (name.includes("Mustard"))   return "🌻";
+  if (name.includes("Rice Husk")) return "🌾";
+  if (name.includes("Pinewood") || name.includes("Pine")) return "🌲";
+  if (name.includes("Sawdust") || name.includes("Wood"))  return "🪵";
+  if (name.includes("Agro"))      return "♻️";
+  if (name.includes("Cotton"))    return "🌸";
+  if (name.includes("Sugarcane") || name.includes("Bagasse")) return "🎋";
+  if (name.includes("Wheat"))     return "🌾";
+  if (name.includes("Bamboo"))    return "🎍";
+  if (name.includes("Maize") || name.includes("Corn")) return "🌽";
+  return "🔥";
+};
+
+const prodGradient = (name="") => {
+  if (name.includes("Soyabean"))  return "linear-gradient(135deg,#2d6a4f,#52b788)";
+  if (name.includes("Groundnut")) return "linear-gradient(135deg,#9c6644,#dda15e)";
+  if (name.includes("Mustard"))   return "linear-gradient(135deg,#b5835a,#e9c46a)";
+  if (name.includes("Rice Husk")) return "linear-gradient(135deg,#606c38,#a7c957)";
+  if (name.includes("Pinewood") || name.includes("Pine")) return "linear-gradient(135deg,#1b4332,#40916c)";
+  if (name.includes("Sawdust") || name.includes("Wood"))  return "linear-gradient(135deg,#7f5539,#b08968)";
+  if (name.includes("Agro"))      return "linear-gradient(135deg,#386641,#6a994e)";
+  if (name.includes("Cotton"))    return "linear-gradient(135deg,#7b2d8b,#c77dff)";
+  if (name.includes("Sugarcane") || name.includes("Bagasse")) return "linear-gradient(135deg,#3a5a40,#588157)";
+  if (name.includes("Wheat"))     return "linear-gradient(135deg,#9c6644,#e9c46a)";
+  if (name.includes("Bamboo"))    return "linear-gradient(135deg,#2d6a4f,#74c69d)";
+  if (name.includes("Maize") || name.includes("Corn")) return "linear-gradient(135deg,#e9c46a,#f4a261)";
+  return "linear-gradient(135deg,#1b4332,#40916c)";
+};
+
 const PRODUCTS = [
   // ── KNB Green Energy Ltd — Akola, MH ──
   { id:1,  type:"Briquette", name:"Soyabean Briquettes",    seller:"KNB Green Energy Ltd",      loc:"Akola, MH",       cal:"3,400", moist:"6%",  ash:"15-20%", price:"5,200", moq:"10 MT", cert:true,  carbon:"1.9", img:"/images/soyabean-briquette.jpg" },
@@ -1016,6 +1049,7 @@ export default function KNBPlatform() {
   const [adminTab, setAdminTab] = useState("enquiries");
   const [adminEnquiries, setAdminEnquiries] = useState([]);
   const [adminUsers, setAdminUsers]         = useState([]);
+  const [adminListings, setAdminListings]   = useState([]);
   const [adminLoading, setAdminLoading]     = useState(false);
   const [authErr, setAuthErr] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
@@ -1097,14 +1131,25 @@ export default function KNBPlatform() {
     if (!isAdmin) return;
     setAdminLoading(true);
     try {
-      const [enqSnap, usrSnap] = await Promise.all([
+      const [enqSnap, usrSnap, lstSnap] = await Promise.all([
         getDocs(query(collection(db, "enquiries"), orderBy("createdAt", "desc"))),
         getDocs(query(collection(db, "users"),     orderBy("createdAt", "desc"))),
+        getDocs(query(collection(db, "listings"),  orderBy("createdAt", "desc"))),
       ]);
       setAdminEnquiries(enqSnap.docs.map(d => ({ id: d.id, ...d.data() })));
       setAdminUsers(usrSnap.docs.map(d => ({ id: d.id, ...d.data() })));
+      setAdminListings(lstSnap.docs.map(d => ({ id: d.id, ...d.data() })));
     } catch(e) { console.error("Admin load:", e); }
     setAdminLoading(false);
+  };
+
+  const adminDeleteListing = async (id) => {
+    if (!window.confirm("Delete this listing?")) return;
+    try {
+      await deleteDoc(doc(db, "listings", id));
+      setAdminListings(prev => prev.filter(l => l.id !== id));
+      showToast("Listing deleted.");
+    } catch(e) { showToast("❌ Delete failed."); }
   };
 
   const markEnquiryHandled = async (id) => {
@@ -1617,10 +1662,11 @@ export default function KNBPlatform() {
             {PRODUCTS.slice(0,3).map(p => (
               <div key={p.id} className="prod-card">
                 <div className="prod-img-hero">
-                  <div className="prod-img-bg" style={{backgroundImage:`url('${p.type==="Pellet"?"/images/pellet-8.jpg":"/images/briquette-5.jpg"}')`}}/>
-                  <div className="prod-img-overlay"/>
-                  {p.img && <img src={p.img} alt={p.name+" raw material"} className="prod-raw-circle" onError={e=>e.target.style.display="none"}/>}
-                  <div className={`prod-type-ribbon ${p.type==="Pellet"?"ribbon-pel":"ribbon-brq"}`}>{p.type}</div>
+                  <div className="prod-img-bg" style={{background:prodGradient(p.name)}}/>
+                  <div style={{position:"relative",zIndex:2,fontSize:60,lineHeight:1,filter:"drop-shadow(0 2px 8px rgba(0,0,0,0.3))"}}>
+                    {prodEmoji(p.name)}
+                  </div>
+                  <div className={`prod-type-ribbon ${p.type==="Pellet"?"ribbon-pel":p.type==="Raw Biomass"?"ribbon-raw":"ribbon-brq"}`}>{p.type}</div>
                   {p.cert && <div className="prod-cert-ribbon">✓ KNB Assured</div>}
                 </div>
                 <div className="prod-card-top">
@@ -2210,15 +2256,15 @@ export default function KNBPlatform() {
           {/* Stats */}
           <div className="admin-stats">
             {[
-              { val: adminEnquiries.length,                                             label: "Total Enquiries",  badge: null },
-              { val: adminEnquiries.filter(e => e.status === "new").length,             label: "New / Pending",    badge: "new" },
-              { val: adminEnquiries.filter(e => e.status === "handled").length,         label: "Handled",          badge: "ok"  },
-              { val: adminUsers.length,                                                 label: "Registered Users", badge: null  },
+              { val: adminEnquiries.length,                                   label: "Total Enquiries",   badge: null },
+              { val: adminEnquiries.filter(e=>e.status==="new").length,        label: "New / Pending",     badge: "new" },
+              { val: adminUsers.length,                                        label: "Registered Users",  badge: null  },
+              { val: adminListings.filter(l=>l.available).length,             label: "Active Listings",   badge: adminListings.filter(l=>l.available).length>0?"ok":null },
             ].map((s,i) => (
               <div className="admin-stat" key={i}>
                 <div className="admin-stat-val">{s.val}</div>
                 <div className="admin-stat-label">{s.label}</div>
-                {s.badge && <div className={`admin-stat-badge badge-${s.badge}`}>{s.badge === "new" ? "Needs Action" : "Done"}</div>}
+                {s.badge && <div className={`admin-stat-badge badge-${s.badge}`}>{s.badge==="new"?"Needs Action":"Live"}</div>}
               </div>
             ))}
           </div>
@@ -2226,12 +2272,14 @@ export default function KNBPlatform() {
           {/* Tabs */}
           <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:16,flexWrap:"wrap",gap:10}}>
             <div className="admin-tabs">
-              {[["enquiries","📩 Enquiries"],["users","👤 Users"]].map(([id,label]) => (
+              {[["enquiries","📩 Enquiries"],["users","👤 Users"],["listings","🌾 Farmer Listings"]].map(([id,label]) => (
                 <button key={id} className={`admin-tab ${adminTab===id?"active":""}`} onClick={() => setAdminTab(id)}>{label}</button>
               ))}
             </div>
             <div style={{fontSize:12,color:"var(--text-muted)"}}>
-              {adminTab==="enquiries" ? `${adminEnquiries.length} total` : `${adminUsers.length} registered`}
+              {adminTab==="enquiries" ? `${adminEnquiries.length} total`
+                : adminTab==="users" ? `${adminUsers.length} registered`
+                : `${adminListings.length} total · ${adminListings.filter(l=>l.available).length} available`}
             </div>
           </div>
 
@@ -2297,13 +2345,8 @@ export default function KNBPlatform() {
               <table className="admin-table">
                 <thead>
                   <tr>
-                    <th>Registered</th>
-                    <th>Name</th>
-                    <th>Phone</th>
-                    <th>Role</th>
-                    <th>Company</th>
-                    <th>Email</th>
-                    <th>City</th>
+                    <th>Registered</th><th>Name</th><th>Phone</th><th>Role</th>
+                    <th>Company</th><th>Email</th><th>City</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -2313,17 +2356,69 @@ export default function KNBPlatform() {
                         {u.createdAt ? new Date(u.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : "—"}
                       </td>
                       <td style={{fontWeight:600}}>{u.name || "—"}</td>
+                      <td><a href={`tel:${u.phone}`} style={{color:"var(--leaf)",fontWeight:600,textDecoration:"none"}}>{u.phone || "—"}</a></td>
                       <td>
-                        <a href={`tel:${u.phone}`} style={{color:"var(--leaf)",fontWeight:600,textDecoration:"none"}}>{u.phone || "—"}</a>
-                      </td>
-                      <td>
-                        <span className={`admin-role-pill ${u.role==="buyer" ? "role-buyer" : u.role==="seller" ? "role-seller" : "role-other"}`}>
+                        <span className={`admin-role-pill ${u.role==="buyer"?"role-buyer":u.role==="seller"?"role-seller":"role-other"}`}>
                           {u.role || "—"}
                         </span>
                       </td>
                       <td>{u.company || "—"}</td>
                       <td style={{color:"var(--text-muted)",fontSize:12}}>{u.email || "—"}</td>
                       <td style={{color:"var(--text-muted)"}}>{u.city || u.location || "—"}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {/* ── FARMER LISTINGS TAB ── */}
+          {adminTab === "listings" && (
+            adminLoading ? <div className="admin-empty">Loading listings…</div> :
+            adminListings.length === 0 ? <div className="admin-empty">No farmer listings yet.</div> :
+            <div className="admin-table-wrap">
+              <table className="admin-table">
+                <thead>
+                  <tr>
+                    <th>Date</th><th>Farmer</th><th>Phone</th><th>Product</th>
+                    <th>Qty</th><th>Price/Unit</th><th>Location</th><th>Status</th><th>Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {adminListings.map(l => (
+                    <tr key={l.id}>
+                      <td style={{whiteSpace:"nowrap",fontSize:11,color:"var(--text-muted)"}}>
+                        {l.createdAt ? new Date(l.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : "—"}
+                      </td>
+                      <td style={{fontWeight:600}}>{l.farmerName || "—"}</td>
+                      <td>
+                        <div style={{display:"flex",gap:6,alignItems:"center"}}>
+                          <a href={`tel:${l.farmerPhone}`} style={{color:"var(--leaf)",fontWeight:600,textDecoration:"none",fontSize:12}}>{l.farmerPhone || "—"}</a>
+                          {l.farmerPhone && (
+                            <a href={`https://wa.me/${l.farmerPhone?.replace(/\D/g,"")}`} target="_blank" rel="noreferrer"
+                              style={{fontSize:14,textDecoration:"none"}} title="WhatsApp">💬</a>
+                          )}
+                        </div>
+                      </td>
+                      <td style={{fontWeight:600,color:"var(--soil)"}}>{l.product || "—"}</td>
+                      <td>{l.qty} {l.qtyUnit}</td>
+                      <td>₹{Number(l.pricePerUnit||0).toLocaleString("en-IN")}/{l.qtyUnit}</td>
+                      <td style={{color:"var(--text-muted)",fontSize:12}}>
+                        {[l.village,l.district,l.state].filter(Boolean).join(", ") || "—"}
+                      </td>
+                      <td>
+                        <span style={{padding:"3px 8px",borderRadius:20,fontSize:11,fontWeight:700,
+                          background:l.available?"#d1fae5":"#f3f4f6",
+                          color:l.available?"#065f46":"var(--text-muted)"}}>
+                          {l.available ? "✅ Available" : "⏸ Off"}
+                        </span>
+                      </td>
+                      <td>
+                        <button onClick={() => adminDeleteListing(l.id)}
+                          style={{padding:"4px 10px",borderRadius:6,border:"1px solid #fecaca",background:"#fff5f5",color:"#c0392b",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                          🗑 Delete
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
