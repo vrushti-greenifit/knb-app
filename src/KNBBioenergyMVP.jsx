@@ -963,6 +963,19 @@ const PRODUCTS = [
   { id:22, type:"Raw Biomass", name:"Rice Husk (Loose)",    seller:"Punjab Agro Fuels",          loc:"Ludhiana, PB",    cal:"3,000", moist:"10%", ash:"18-22%", price:"2,200", moq:"50 MT", cert:false, carbon:"1.5", img:"/images/ricehusk-briquette.jpg" },
 ];
 
+// Raw biomass procurement prices — what KNB pays farmers
+const PROCUREMENT_PRICES = [
+  { name:"Paddy Straw",       icon:"🌾", base:1800, unit:"MT",  note:"Dry, baled preferred",     quality:"Moisture < 15%" },
+  { name:"Sugarcane Bagasse", icon:"🎋", base:1400, unit:"MT",  note:"Fresh or dried accepted",  quality:"Moisture < 20%" },
+  { name:"Cotton Stalks",     icon:"🌸", base:2000, unit:"MT",  note:"Chopped or whole",         quality:"Moisture < 12%" },
+  { name:"Mustard Stalk",     icon:"🌻", base:2200, unit:"MT",  note:"Post-harvest residue",     quality:"Moisture < 10%" },
+  { name:"Wheat Straw",       icon:"🌾", base:1600, unit:"MT",  note:"Baled preferred",          quality:"Moisture < 15%" },
+  { name:"Rice Husk",         icon:"🌿", base:1200, unit:"MT",  note:"Clean, sieved preferred",  quality:"Moisture < 12%" },
+  { name:"Corn Cob",          icon:"🌽", base:2400, unit:"MT",  note:"Dry, shelled or whole",    quality:"Moisture < 10%" },
+  { name:"Groundnut Shell",   icon:"🥜", base:2600, unit:"MT",  note:"Clean shells only",        quality:"Moisture < 10%" },
+  { name:"Sawdust",           icon:"🪵", base:1800, unit:"MT",  note:"Fine or coarse both OK",   quality:"Moisture < 15%" },
+];
+
 const INIT_PRICES = [
   { id:"SDBRQ", name:"Sawdust Briquettes",     short:"SD-BRQ", grade:"A+ · KNB Certified", price:6500, open:6420, high:6580, low:6380, vol:180, cal:"4,200" },
   { id:"PNPEL", name:"Pinewood Pellets",        short:"PN-PEL", grade:"Premium · KNB Assured", price:9500, open:9300, high:9650, low:9250, vol:95,  cal:"4,300" },
@@ -1078,6 +1091,7 @@ export default function KNBPlatform() {
   const [myOrdersLoading, setMyOrdersLoading] = useState(false);
 
   // ── Farmer Listings ──
+  const [marketListings, setMarketListings]   = useState([]);
   const [myListings, setMyListings]           = useState([]);
   const [myListingsLoading, setMyListingsLoading] = useState(false);
   const [listingTab, setListingTab]           = useState("listings");
@@ -1264,6 +1278,23 @@ export default function KNBPlatform() {
       loadMyListings();
     }
   }, [modal]);
+
+  // Load all available listings for the farmer marketplace page
+  const loadMarketListings = async () => {
+    try {
+      const snap = await getDocs(query(
+        collection(db, "listings"),
+        where("available", "==", true)
+      ));
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setMarketListings(docs);
+    } catch(e) { console.error("Market listings:", e); }
+  };
+
+  useEffect(() => {
+    if (activeNav === "products" && userProfile?.role === "farmer") loadMarketListings();
+  }, [activeNav, userProfile]);
 
   // ── Price helpers ──
   const adjPrice = (base) => base + (STATE_PRICE_ADJ[priceState] || 0);
@@ -1534,7 +1565,10 @@ export default function KNBPlatform() {
           </div>
         </div>
         <div className="nav-center">
-          {[["home","Home"],["products","Products"],["exchange","Exchange"],["about","About"],["contact","Contact"]].map(([id,label]) => (
+          {(userProfile?.role === "farmer"
+            ? [["home","Home"],["products","Find Buyers"],["exchange","Selling Prices"],["about","About"],["contact","Contact"]]
+            : [["home","Home"],["products","Products"],["exchange","Exchange"],["about","About"],["contact","Contact"]]
+          ).map(([id,label]) => (
             <button key={id} className={`nav-link ${activeNav===id?"active":""}`} onClick={() => navTo(id)}>{label}</button>
           ))}
           {isAdmin && (
@@ -1712,7 +1746,66 @@ export default function KNBPlatform() {
       {/* ═══════════════════════════════════════
           PRODUCTS PAGE
       ═══════════════════════════════════════ */}
-      {activeNav === "products" && <>
+
+      {/* FARMER: Find Buyers — show all active listings */}
+      {activeNav === "products" && userProfile?.role === "farmer" && <>
+      <section className="section" style={{background:"#fff",paddingTop:56,paddingBottom:64}}>
+        <div className="section-narrow">
+          <div style={{marginBottom:28}}>
+            <div className="section-kicker">Marketplace</div>
+            <div className="section-h2">Active <em>Biomass Listings</em></div>
+            <div className="section-desc">All available raw biomass from farmers across India. List your stock to appear here and get buyer enquiries.</div>
+          </div>
+
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:12}}>
+            <div style={{fontSize:13,color:"var(--text-muted)"}}>
+              {myListings.filter(l=>l.available).length} listings available
+            </div>
+            <button onClick={() => setModal("farmer-dashboard")}
+              style={{padding:"9px 20px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+              + Add Your Listing
+            </button>
+          </div>
+
+          {marketListings.length === 0 ? (
+            <div style={{textAlign:"center",padding:"48px 20px",background:"var(--cream)",borderRadius:12}}>
+              <div style={{fontSize:44,marginBottom:12}}>🌱</div>
+              <div style={{fontSize:16,fontWeight:700,color:"var(--soil)"}}>No listings yet</div>
+              <div style={{fontSize:13,color:"var(--text-muted)",marginTop:6}}>Be the first to list your biomass stock</div>
+            </div>
+          ) : (
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
+              {marketListings.map(l => (
+                <div key={l.id} style={{background:"#fff",border:`1.5px solid ${l.uid===currentUser?.uid?"#a7f3d0":"var(--border)"}`,borderRadius:12,padding:"18px 18px 14px",boxShadow:"var(--shadow-sm)"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
+                    <div style={{fontSize:28}}>{prodEmoji(l.product)}</div>
+                    {l.uid === currentUser?.uid && (
+                      <span style={{fontSize:10,fontWeight:700,background:"var(--mint)",color:"var(--leaf)",padding:"2px 8px",borderRadius:20}}>Your listing</span>
+                    )}
+                  </div>
+                  <div style={{fontWeight:700,fontSize:15,color:"var(--soil)"}}>{l.product}</div>
+                  <div style={{fontSize:22,fontWeight:800,color:"var(--leaf)",margin:"6px 0",fontFamily:"monospace"}}>
+                    ₹{Number(l.pricePerUnit).toLocaleString("en-IN")}
+                    <span style={{fontSize:12,fontWeight:500,color:"var(--text-muted)"}}>/{l.qtyUnit}</span>
+                  </div>
+                  <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:10}}>
+                    📦 {l.qty} {l.qtyUnit} available &nbsp;·&nbsp; 📍 {[l.district,l.state].filter(Boolean).join(", ")}
+                  </div>
+                  {l.description && <div style={{fontSize:11,color:"var(--text-muted)",marginBottom:10,borderTop:"1px solid var(--border)",paddingTop:8}}>{l.description}</div>}
+                  <a href={`https://wa.me/${l.farmerPhone?.replace(/\D/g,"")}?text=Hi+${l.farmerName},+I+saw+your+${l.product}+listing+on+KNB+BioEnergy.+Interested+to+buy.`}
+                    target="_blank" rel="noreferrer"
+                    style={{display:"block",textAlign:"center",padding:"8px",borderRadius:8,background:"#25d366",color:"#fff",fontWeight:700,fontSize:13,textDecoration:"none"}}>
+                    💬 Contact Farmer
+                  </a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+      </>}
+
+      {activeNav === "products" && userProfile?.role !== "farmer" && <>
       <section className="section" style={{background:"var(--paper)",paddingTop:48}}>
         <div className="section-narrow">
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:24}}>
@@ -1843,7 +1936,77 @@ export default function KNBPlatform() {
       {/* ═══════════════════════════════════════
           EXCHANGE PAGE
       ═══════════════════════════════════════ */}
-      {activeNav === "exchange" && <>
+      {activeNav === "exchange" && userProfile?.role === "farmer" && <>
+      {/* ── FARMER: PROCUREMENT PRICE BOARD ── */}
+      <section className="section" style={{background:"#fff",paddingTop:56,paddingBottom:64}}>
+        <div className="section-narrow">
+          <div style={{marginBottom:32}}>
+            <div className="section-kicker">Procurement Prices</div>
+            <div className="section-h2">What <em>KNB Pays</em> for Raw Biomass</div>
+            <div className="section-desc">These are current indicative buying prices at Akola, Maharashtra. Final price depends on quality, moisture, and delivery. Call or WhatsApp to get a confirmed quote.</div>
+          </div>
+
+          {/* State selector */}
+          <div className="state-price-bar" style={{marginBottom:32}}>
+            <span className="spb-icon">🗺</span>
+            <span className="spb-label">Your state:</span>
+            <select className="spb-select" value={priceState} onChange={e => setPriceState(e.target.value)}>
+              {Object.keys(STATE_PRICE_ADJ).map(s => <option key={s}>{s}</option>)}
+            </select>
+            <span style={{fontSize:12,color:"var(--text-muted)",marginLeft:8}}>
+              {STATE_PRICE_ADJ[priceState] > 0 ? `+₹${STATE_PRICE_ADJ[priceState]}/MT transport` : STATE_PRICE_ADJ[priceState] < 0 ? `₹${STATE_PRICE_ADJ[priceState]}/MT` : "Base prices (no transport adjustment)"}
+            </span>
+          </div>
+
+          {/* Price cards grid */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:16,marginBottom:40}}>
+            {PROCUREMENT_PRICES.map(p => {
+              const adj = (STATE_PRICE_ADJ[priceState] || 0);
+              const price = p.base + adj;
+              return (
+                <div key={p.name} style={{background:"#fff",border:"1.5px solid var(--border)",borderRadius:12,padding:"18px 20px",boxShadow:"var(--shadow-sm)",transition:"all .2s"}}
+                  onMouseEnter={e=>e.currentTarget.style.boxShadow="var(--shadow-md)"}
+                  onMouseLeave={e=>e.currentTarget.style.boxShadow="var(--shadow-sm)"}>
+                  <div style={{fontSize:32,marginBottom:10}}>{p.icon}</div>
+                  <div style={{fontWeight:700,fontSize:15,color:"var(--soil)",marginBottom:4}}>{p.name}</div>
+                  <div style={{fontSize:22,fontWeight:800,color:"var(--leaf)",fontFamily:"monospace",marginBottom:8}}>
+                    ₹{price.toLocaleString("en-IN")}<span style={{fontSize:13,fontWeight:500,color:"var(--text-muted)"}}>/{p.unit}</span>
+                  </div>
+                  <div style={{fontSize:11,color:"var(--text-muted)",borderTop:"1px solid var(--border)",paddingTop:8,marginTop:4}}>
+                    <div>{p.quality}</div>
+                    <div style={{marginTop:2}}>{p.note}</div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          <div style={{background:"var(--mint)",border:"1.5px solid #a7f3d0",borderRadius:12,padding:"20px 24px",display:"flex",flexWrap:"wrap",gap:16,alignItems:"center",justifyContent:"space-between"}}>
+            <div>
+              <div style={{fontWeight:700,fontSize:15,color:"var(--soil)"}}>Ready to sell your biomass?</div>
+              <div style={{fontSize:13,color:"var(--text-muted)",marginTop:3}}>List your available stock and KNB will contact you within 24 hours.</div>
+            </div>
+            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
+              <button onClick={() => setModal("farmer-dashboard")}
+                style={{padding:"10px 22px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer"}}>
+                🌾 List Your Biomass
+              </button>
+              <a href="https://wa.me/919920657193?text=Hi+KNB,+I+want+a+quote+for+selling+biomass"
+                target="_blank" rel="noreferrer"
+                style={{padding:"10px 22px",borderRadius:8,border:"1.5px solid #a7f3d0",background:"#fff",color:"var(--leaf)",fontWeight:700,fontSize:14,textDecoration:"none"}}>
+                💬 WhatsApp for Quote
+              </a>
+            </div>
+          </div>
+
+          <div style={{marginTop:20,fontSize:12,color:"var(--text-muted)",textAlign:"center"}}>
+            * Prices are indicative. Transport charges adjusted by state. Final price confirmed after quality inspection.
+          </div>
+        </div>
+      </section>
+      </>}
+
+      {activeNav === "exchange" && userProfile?.role !== "farmer" && <>
       <div className="ticker-wrap">
         <div className="ticker-scroll">
           {[...INIT_PRICES,...INIT_PRICES].map((p,i) => (
