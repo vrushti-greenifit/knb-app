@@ -1613,8 +1613,8 @@ export default function KNBPlatform() {
       ═══════════════════════════════════════ */}
       {activeNav === "home" && <>
 
-      {/* TICKER */}
-      <div className="ticker-wrap">
+      {/* TICKER — buyers only */}
+      {userProfile?.role !== "farmer" && <div className="ticker-wrap">
         <div className="ticker-scroll">
           {[...INIT_PRICES,...INIT_PRICES].map((p,i) => (
             <div key={i} className="ticker-item">
@@ -1679,10 +1679,10 @@ export default function KNBPlatform() {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
 
-      {/* HOME: FEATURED PRODUCTS (3 items teaser) */}
-      <section className="section" style={{background:"var(--paper)"}}>
+      {/* HOME: FEATURED PRODUCTS — buyers only */}
+      {userProfile?.role !== "farmer" && <section className="section" style={{background:"var(--paper)"}}>
         <div className="section-narrow">
           <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-end",flexWrap:"wrap",gap:16,marginBottom:32}}>
             <div>
@@ -1728,18 +1728,30 @@ export default function KNBPlatform() {
             <button className="btn-ghost" style={{padding:"13px 40px",fontSize:15}} onClick={() => navTo("products")}>Browse All Products →</button>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* HOME: BOTTOM CTA */}
-      <section className="cta-bottom">
-        <h2>Ready to source <em>clean biomass?</em></h2>
-        <p>India's most trusted bioenergy platform. Verified products. Transparent pricing.</p>
-        <div className="cta-buttons">
-          <button className="btn-harvest btn-xl" onClick={() => setModal("choose-role")}>Get Started Free →</button>
-          <button className="btn-outline-leaf btn-xl" onClick={() => navTo("contact")}>Talk to Us</button>
-        </div>
-        <div className="cta-note">Free to join · No listing fees · KNB Platform Certified</div>
-      </section>
+      {/* HOME: BOTTOM CTA — farmer version */}
+      {userProfile?.role === "farmer" ? (
+        <section className="cta-bottom">
+          <h2>Your biomass has <em>real value.</em></h2>
+          <p>KNB buys paddy straw, sugarcane bagasse, cotton stalks & more. List your stock and get paid within days.</p>
+          <div className="cta-buttons">
+            <button className="btn-harvest btn-xl" onClick={() => setModal("farmer-dashboard")}>🌾 List Your Biomass →</button>
+            <button className="btn-outline-leaf btn-xl" onClick={() => navTo("exchange")}>See Buying Prices</button>
+          </div>
+          <div className="cta-note">Free to list · No commission · KNB pays fair prices</div>
+        </section>
+      ) : (
+        <section className="cta-bottom">
+          <h2>Ready to source <em>clean biomass?</em></h2>
+          <p>India's most trusted bioenergy platform. Verified products. Transparent pricing.</p>
+          <div className="cta-buttons">
+            <button className="btn-harvest btn-xl" onClick={() => setModal("choose-role")}>Get Started Free →</button>
+            <button className="btn-outline-leaf btn-xl" onClick={() => navTo("contact")}>Talk to Us</button>
+          </div>
+          <div className="cta-note">Free to join · No listing fees · KNB Platform Certified</div>
+        </section>
+      )}
 
       </>}{/* END HOME */}
 
