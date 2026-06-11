@@ -1058,7 +1058,6 @@ export default function KNBPlatform() {
   // ── Registration GST ──
   const [regGST, setRegGST]         = useState("");
   // ── Admin state ──
-  const ADMIN_PHONES = ["+919920657193", "+91 99206 57193"];
   const [adminTab, setAdminTab] = useState("enquiries");
   const [adminEnquiries, setAdminEnquiries] = useState([]);
   const [adminUsers, setAdminUsers]         = useState([]);
@@ -1101,7 +1100,9 @@ export default function KNBPlatform() {
   const [newListingPrice, setNewListingPrice] = useState("");
   const [newListingDesc, setNewListingDesc]   = useState("");
   const [listingBusy, setListingBusy]         = useState(false);
-
+  // ── Farmer: incoming buyer enquiries ──
+  const [farmerEnquiries, setFarmerEnquiries]   = useState([]);
+  const [farmerEnqLoading, setFarmerEnqLoading] = useState(false);
   // ── Enquiry form (controlled inputs) ──
   const [enqName, setEnqName] = useState("");
   const [enqCompany, setEnqCompany] = useState("");
@@ -1138,8 +1139,7 @@ export default function KNBPlatform() {
   }, []);
 
   // ── Admin helpers ──
-  const isAdmin = !!(currentUser?.phoneNumber &&
-    ADMIN_PHONES.some(p => currentUser.phoneNumber.replace(/\s/g,"") === p.replace(/\s/g,"")));
+  const isAdmin = userProfile?.role === "admin";
 
   const loadAdminData = async () => {
     if (!isAdmin) return;
@@ -1185,10 +1185,11 @@ export default function KNBPlatform() {
     try {
       const snap = await getDocs(query(
         collection(db, "enquiries"),
-        where("userId", "==", currentUser.uid),
-        orderBy("createdAt", "desc")
+        where("userId", "==", currentUser.uid)
       ));
-      setMyOrders(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setMyOrders(docs);
     } catch(e) { console.error("My orders:", e); }
     setMyOrdersLoading(false);
   };
@@ -1293,8 +1294,41 @@ export default function KNBPlatform() {
   };
 
   useEffect(() => {
-    if (activeNav === "products" && userProfile?.role === "farmer") loadMarketListings();
+    if (activeNav === "products" && userProfile?.role === "farmer") loadMyListings();
   }, [activeNav, userProfile]);
+
+  const loadFarmerEnquiries = async () => {
+    if (!currentUser) return;
+    setFarmerEnqLoading(true);
+    try {
+      const snap = await getDocs(query(collection(db, "enquiries"), where("farmerUid", "==", currentUser.uid)));
+      const docs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      docs.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+      setFarmerEnquiries(docs);
+    } catch(e) { console.error("Farmer enquiries:", e); }
+    setFarmerEnqLoading(false);
+  };
+
+  useEffect(() => {
+    if (activeNav === "exchange" && userProfile?.role === "farmer") loadFarmerEnquiries();
+  }, [activeNav, userProfile]);
+
+  const adminExpressInterest = async (l) => {
+    try {
+      await addDoc(collection(db, "enquiries"), {
+        type: "admin-interest",
+        listingId: l.id,
+        farmerUid: l.uid,
+        farmerName: l.farmerName || "",
+        farmerPhone: l.farmerPhone || "",
+        product: l.product,
+        qty: l.qty,
+        qtyUnit: l.qtyUnit,
+        createdAt: new Date().toISOString(),
+      });
+      showToast("✅ Interest recorded — farmer notified in My Orders.");
+    } catch(e) { showToast("❌ Failed."); }
+  };
 
   // ── Price helpers ──
   const adjPrice = (base) => base + (STATE_PRICE_ADJ[priceState] || 0);
@@ -1566,7 +1600,7 @@ export default function KNBPlatform() {
         </div>
         <div className="nav-center">
           {(userProfile?.role === "farmer"
-            ? [["home","Home"],["products","Find Buyers"],["exchange","Selling Prices"],["about","About"],["contact","Contact"]]
+            ? [["home","Home"],["products","My Listings"],["exchange","My Orders"],["contact","Contact"]]
             : [["home","Home"],["products","Products"],["exchange","Exchange"],["about","About"],["contact","Contact"]]
           ).map(([id,label]) => (
             <button key={id} className={`nav-link ${activeNav===id?"active":""}`} onClick={() => navTo(id)}>{label}</button>
@@ -1624,7 +1658,7 @@ export default function KNBPlatform() {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* HERO */}
       <section className="hero">
@@ -1679,7 +1713,7 @@ export default function KNBPlatform() {
             </div>
           ))}
         </div>
-      </div>}
+      </div>
 
       {/* HOME: FEATURED PRODUCTS — buyers only */}
       {userProfile?.role !== "farmer" && <section className="section" style={{background:"var(--paper)"}}>
@@ -1759,56 +1793,98 @@ export default function KNBPlatform() {
           PRODUCTS PAGE
       ═══════════════════════════════════════ */}
 
-      {/* FARMER: Find Buyers — show all active listings */}
+      {/* FARMER: My Listings — form + manage own listings */}
       {activeNav === "products" && userProfile?.role === "farmer" && <>
       <section className="section" style={{background:"#fff",paddingTop:56,paddingBottom:64}}>
         <div className="section-narrow">
           <div style={{marginBottom:28}}>
-            <div className="section-kicker">Marketplace</div>
-            <div className="section-h2">Active <em>Biomass Listings</em></div>
-            <div className="section-desc">All available raw biomass from farmers across India. List your stock to appear here and get buyer enquiries.</div>
+            <div className="section-kicker">My Stock</div>
+            <div className="section-h2">My <em>Biomass Listings</em></div>
           </div>
 
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:20,flexWrap:"wrap",gap:12}}>
-            <div style={{fontSize:13,color:"var(--text-muted)"}}>
-              {myListings.filter(l=>l.available).length} listings available
+          {/* Add listing form */}
+          <div style={{background:"var(--cream)",borderRadius:12,padding:"24px",marginBottom:32,border:"1.5px solid var(--border)"}}>
+            <div style={{fontWeight:700,fontSize:15,color:"var(--soil)",marginBottom:14}}>+ Add New Listing</div>
+            <div style={{background:"var(--mint)",border:"1px solid #a7f3d0",borderRadius:8,padding:"9px 13px",fontSize:12,color:"#065f46",marginBottom:14}}>
+              📍 Location: <strong>{[userProfile?.village,userProfile?.district,userProfile?.state].filter(Boolean).join(", ") || "as per your profile"}</strong>
             </div>
-            <button onClick={() => setModal("farmer-dashboard")}
-              style={{padding:"9px 20px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer"}}>
-              + Add Your Listing
-            </button>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div>
+                <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--soil)",marginBottom:4}}>Biomass Type</label>
+                <select value={newListingProduct} onChange={e=>setNewListingProduct(e.target.value)}
+                  style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",color:"var(--soil)"}}>
+                  {BIOMASS_PRODUCTS.map(p=><option key={p}>{p}</option>)}
+                </select>
+              </div>
+              <div style={{display:"grid",gridTemplateColumns:"1fr 110px",gap:10}}>
+                <div>
+                  <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--soil)",marginBottom:4}}>Quantity Available</label>
+                  <input type="number" placeholder="e.g. 50" value={newListingQty} onChange={e=>setNewListingQty(e.target.value)}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",boxSizing:"border-box"}}/>
+                </div>
+                <div>
+                  <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--soil)",marginBottom:4}}>Unit</label>
+                  <select value={newListingUnit} onChange={e=>setNewListingUnit(e.target.value)}
+                    style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",color:"var(--soil)"}}>
+                    {["MT","Quintal","Tonne","Kg","Truck Load"].map(u=><option key={u}>{u}</option>)}
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--soil)",marginBottom:4}}>Your Price (₹ per {newListingUnit})</label>
+                <input type="number" placeholder="e.g. 1200" value={newListingPrice} onChange={e=>setNewListingPrice(e.target.value)}
+                  style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",boxSizing:"border-box"}}/>
+              </div>
+              <div>
+                <label style={{display:"block",fontSize:12,fontWeight:600,color:"var(--soil)",marginBottom:4}}>Description (optional)</label>
+                <textarea placeholder="Quality, condition, transport…" value={newListingDesc} onChange={e=>setNewListingDesc(e.target.value)} rows={2}
+                  style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff",resize:"vertical",boxSizing:"border-box"}}/>
+              </div>
+              <button onClick={addListing} disabled={listingBusy}
+                style={{padding:"12px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:14,cursor:listingBusy?"not-allowed":"pointer",opacity:listingBusy?0.6:1}}>
+                {listingBusy ? "Adding…" : "🌾 Add Listing"}
+              </button>
+            </div>
           </div>
 
-          {marketListings.length === 0 ? (
-            <div style={{textAlign:"center",padding:"48px 20px",background:"var(--cream)",borderRadius:12}}>
-              <div style={{fontSize:44,marginBottom:12}}>🌱</div>
-              <div style={{fontSize:16,fontWeight:700,color:"var(--soil)"}}>No listings yet</div>
-              <div style={{fontSize:13,color:"var(--text-muted)",marginTop:6}}>Be the first to list your biomass stock</div>
+          {/* Existing listings */}
+          <div style={{fontWeight:700,fontSize:15,color:"var(--soil)",marginBottom:12}}>
+            My Listings {myListings.length > 0 && <span style={{fontSize:12,fontWeight:500,color:"var(--text-muted)"}}>({myListings.length})</span>}
+          </div>
+          {myListingsLoading ? (
+            <div style={{textAlign:"center",padding:"32px",color:"var(--text-muted)"}}>Loading…</div>
+          ) : myListings.length === 0 ? (
+            <div style={{textAlign:"center",padding:"32px",background:"var(--cream)",borderRadius:12}}>
+              <div style={{fontSize:13,color:"var(--text-muted)"}}>No listings yet — add your first one above</div>
             </div>
           ) : (
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
-              {marketListings.map(l => (
-                <div key={l.id} style={{background:"#fff",border:`1.5px solid ${l.uid===currentUser?.uid?"#a7f3d0":"var(--border)"}`,borderRadius:12,padding:"18px 18px 14px",boxShadow:"var(--shadow-sm)"}}>
-                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:10}}>
-                    <div style={{fontSize:28}}>{prodEmoji(l.product)}</div>
-                    {l.uid === currentUser?.uid && (
-                      <span style={{fontSize:10,fontWeight:700,background:"var(--mint)",color:"var(--leaf)",padding:"2px 8px",borderRadius:20}}>Your listing</span>
-                    )}
+            <div style={{display:"flex",flexDirection:"column",gap:10}}>
+              {myListings.map(l => (
+                <div key={l.id} style={{border:`1.5px solid ${l.available?"#a7f3d0":"var(--border)"}`,borderRadius:10,padding:"14px 16px",background:l.available?"#f0fdf4":"var(--cream)"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:15,color:"var(--soil)"}}>{l.product}</div>
+                      <div style={{fontSize:13,color:"var(--text-muted)",marginTop:3}}>
+                        {l.qty} {l.qtyUnit} &nbsp;·&nbsp; ₹{Number(l.pricePerUnit).toLocaleString("en-IN")}/{l.qtyUnit}
+                        {l.district && <>&nbsp;·&nbsp; {l.district}, {l.state}</>}
+                      </div>
+                      {l.description && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:4}}>{l.description}</div>}
+                    </div>
+                    <span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700,flexShrink:0,
+                      background:l.available?"#d1fae5":"#f3f4f6",color:l.available?"#065f46":"var(--text-muted)"}}>
+                      {l.available ? "✅ Available" : "⏸ Unavailable"}
+                    </span>
                   </div>
-                  <div style={{fontWeight:700,fontSize:15,color:"var(--soil)"}}>{l.product}</div>
-                  <div style={{fontSize:22,fontWeight:800,color:"var(--leaf)",margin:"6px 0",fontFamily:"monospace"}}>
-                    ₹{Number(l.pricePerUnit).toLocaleString("en-IN")}
-                    <span style={{fontSize:12,fontWeight:500,color:"var(--text-muted)"}}>/{l.qtyUnit}</span>
+                  <div style={{marginTop:10,display:"flex",gap:8,flexWrap:"wrap"}}>
+                    <button onClick={()=>toggleAvailability(l.id,l.available)}
+                      style={{padding:"5px 14px",borderRadius:6,border:"1.5px solid var(--border)",background:"#fff",color:"var(--soil)",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                      {l.available ? "Mark Unavailable" : "Mark Available"}
+                    </button>
+                    <button onClick={()=>deleteListing(l.id)}
+                      style={{padding:"5px 14px",borderRadius:6,border:"1.5px solid #fecaca",background:"#fff5f5",color:"#c0392b",fontSize:12,fontWeight:600,cursor:"pointer"}}>
+                      🗑 Delete
+                    </button>
                   </div>
-                  <div style={{fontSize:12,color:"var(--text-muted)",marginBottom:10}}>
-                    📦 {l.qty} {l.qtyUnit} available &nbsp;·&nbsp; 📍 {[l.district,l.state].filter(Boolean).join(", ")}
-                  </div>
-                  {l.description && <div style={{fontSize:11,color:"var(--text-muted)",marginBottom:10,borderTop:"1px solid var(--border)",paddingTop:8}}>{l.description}</div>}
-                  <a href={`https://wa.me/${l.farmerPhone?.replace(/\D/g,"")}?text=Hi+${l.farmerName},+I+saw+your+${l.product}+listing+on+KNB+BioEnergy.+Interested+to+buy.`}
-                    target="_blank" rel="noreferrer"
-                    style={{display:"block",textAlign:"center",padding:"8px",borderRadius:8,background:"#25d366",color:"#fff",fontWeight:700,fontSize:13,textDecoration:"none"}}>
-                    💬 Contact Farmer
-                  </a>
                 </div>
               ))}
             </div>
@@ -1949,71 +2025,68 @@ export default function KNBPlatform() {
           EXCHANGE PAGE
       ═══════════════════════════════════════ */}
       {activeNav === "exchange" && userProfile?.role === "farmer" && <>
-      {/* ── FARMER: PROCUREMENT PRICE BOARD ── */}
+      {/* ── FARMER: MY ORDERS ── */}
       <section className="section" style={{background:"#fff",paddingTop:56,paddingBottom:64}}>
         <div className="section-narrow">
-          <div style={{marginBottom:32}}>
-            <div className="section-kicker">Procurement Prices</div>
-            <div className="section-h2">What <em>KNB Pays</em> for Raw Biomass</div>
-            <div className="section-desc">These are current indicative buying prices at Akola, Maharashtra. Final price depends on quality, moisture, and delivery. Call or WhatsApp to get a confirmed quote.</div>
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:12,marginBottom:28}}>
+            <div>
+              <div className="section-kicker">Buyer Enquiries</div>
+              <div className="section-h2">My <em>Orders</em></div>
+            </div>
+            <button onClick={loadFarmerEnquiries}
+              style={{padding:"8px 18px",borderRadius:8,border:"1.5px solid var(--border)",background:"#fff",color:"var(--soil)",fontSize:13,fontWeight:600,cursor:"pointer",marginTop:8}}>
+              ↻ Refresh
+            </button>
           </div>
 
-          {/* State selector */}
-          <div className="state-price-bar" style={{marginBottom:32}}>
-            <span className="spb-icon">🗺</span>
-            <span className="spb-label">Your state:</span>
-            <select className="spb-select" value={priceState} onChange={e => setPriceState(e.target.value)}>
-              {Object.keys(STATE_PRICE_ADJ).map(s => <option key={s}>{s}</option>)}
-            </select>
-            <span style={{fontSize:12,color:"var(--text-muted)",marginLeft:8}}>
-              {STATE_PRICE_ADJ[priceState] > 0 ? `+₹${STATE_PRICE_ADJ[priceState]}/MT transport` : STATE_PRICE_ADJ[priceState] < 0 ? `₹${STATE_PRICE_ADJ[priceState]}/MT` : "Base prices (no transport adjustment)"}
-            </span>
-          </div>
-
-          {/* Price cards grid */}
-          <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(240px,1fr))",gap:16,marginBottom:40}}>
-            {PROCUREMENT_PRICES.map(p => {
-              const adj = (STATE_PRICE_ADJ[priceState] || 0);
-              const price = p.base + adj;
-              return (
-                <div key={p.name} style={{background:"#fff",border:"1.5px solid var(--border)",borderRadius:12,padding:"18px 20px",boxShadow:"var(--shadow-sm)",transition:"all .2s"}}
-                  onMouseEnter={e=>e.currentTarget.style.boxShadow="var(--shadow-md)"}
-                  onMouseLeave={e=>e.currentTarget.style.boxShadow="var(--shadow-sm)"}>
-                  <div style={{fontSize:32,marginBottom:10}}>{p.icon}</div>
-                  <div style={{fontWeight:700,fontSize:15,color:"var(--soil)",marginBottom:4}}>{p.name}</div>
-                  <div style={{fontSize:22,fontWeight:800,color:"var(--leaf)",fontFamily:"monospace",marginBottom:8}}>
-                    ₹{price.toLocaleString("en-IN")}<span style={{fontSize:13,fontWeight:500,color:"var(--text-muted)"}}>/{p.unit}</span>
+          {farmerEnqLoading ? (
+            <div style={{textAlign:"center",padding:"56px",color:"var(--text-muted)"}}>Loading…</div>
+          ) : farmerEnquiries.length === 0 ? (
+            <div style={{textAlign:"center",padding:"64px 24px",background:"var(--cream)",borderRadius:12}}>
+              <div style={{fontSize:48,marginBottom:12}}>📭</div>
+              <div style={{fontSize:16,fontWeight:700,color:"var(--soil)"}}>No orders yet</div>
+              <div style={{fontSize:13,color:"var(--text-muted)",marginTop:6,maxWidth:320,margin:"8px auto 0"}}>
+                KNB will reach out once they review your listing. Make sure your listings are marked Available.
+              </div>
+              <button onClick={()=>navTo("products")}
+                style={{marginTop:20,padding:"10px 28px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer"}}>
+                + Add a Listing
+              </button>
+            </div>
+          ) : (
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              {farmerEnquiries.map(e => (
+                <div key={e.id} style={{border:"1.5px solid #a7f3d0",borderRadius:10,padding:"16px 18px",background:"#f0fdf4",boxShadow:"var(--shadow-sm)"}}>
+                  <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",flexWrap:"wrap",gap:8}}>
+                    <div>
+                      <div style={{fontWeight:700,fontSize:14,color:"#065f46",marginBottom:4}}>✅ KNB is interested in buying your stock</div>
+                      <div style={{fontWeight:600,fontSize:15,color:"var(--soil)"}}>{e.product}</div>
+                      <div style={{fontSize:13,color:"var(--text-muted)",marginTop:2}}>
+                        {e.qty} {e.qtyUnit} &nbsp;·&nbsp; ₹{Number(e.pricePerUnit||0).toLocaleString("en-IN")}/{e.qtyUnit}
+                      </div>
+                    </div>
+                    <div style={{fontSize:11,color:"var(--text-muted)",flexShrink:0}}>
+                      {e.createdAt ? new Date(e.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}) : ""}
+                    </div>
                   </div>
-                  <div style={{fontSize:11,color:"var(--text-muted)",borderTop:"1px solid var(--border)",paddingTop:8,marginTop:4}}>
-                    <div>{p.quality}</div>
-                    <div style={{marginTop:2}}>{p.note}</div>
+                  <div style={{marginTop:12,background:"#fff",borderRadius:8,padding:"10px 14px",fontSize:13,color:"var(--soil)"}}>
+                    Please contact KNB to confirm the deal:
+                  </div>
+                  <div style={{marginTop:8,display:"flex",gap:8,flexWrap:"wrap"}}>
+                    <a href="tel:+919920657193"
+                      style={{padding:"7px 16px",borderRadius:8,background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:13,textDecoration:"none"}}>
+                      📞 Call KNB
+                    </a>
+                    <a href="https://wa.me/919920657193?text=Hi+KNB,+I+got+an+order+notification+for+my+listing+on+KNB+BioEnergy.+I+want+to+confirm+the+deal."
+                      target="_blank" rel="noreferrer"
+                      style={{padding:"7px 16px",borderRadius:8,background:"#25d366",color:"#fff",fontWeight:700,fontSize:13,textDecoration:"none"}}>
+                      💬 WhatsApp KNB
+                    </a>
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          <div style={{background:"var(--mint)",border:"1.5px solid #a7f3d0",borderRadius:12,padding:"20px 24px",display:"flex",flexWrap:"wrap",gap:16,alignItems:"center",justifyContent:"space-between"}}>
-            <div>
-              <div style={{fontWeight:700,fontSize:15,color:"var(--soil)"}}>Ready to sell your biomass?</div>
-              <div style={{fontSize:13,color:"var(--text-muted)",marginTop:3}}>List your available stock and KNB will contact you within 24 hours.</div>
+              ))}
             </div>
-            <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-              <button onClick={() => setModal("farmer-dashboard")}
-                style={{padding:"10px 22px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer"}}>
-                🌾 List Your Biomass
-              </button>
-              <a href="https://wa.me/919920657193?text=Hi+KNB,+I+want+a+quote+for+selling+biomass"
-                target="_blank" rel="noreferrer"
-                style={{padding:"10px 22px",borderRadius:8,border:"1.5px solid #a7f3d0",background:"#fff",color:"var(--leaf)",fontWeight:700,fontSize:14,textDecoration:"none"}}>
-                💬 WhatsApp for Quote
-              </a>
-            </div>
-          </div>
-
-          <div style={{marginTop:20,fontSize:12,color:"var(--text-muted)",textAlign:"center"}}>
-            * Prices are indicative. Transport charges adjusted by state. Final price confirmed after quality inspection.
-          </div>
+          )}
         </div>
       </section>
       </>}
@@ -2589,10 +2662,16 @@ export default function KNBPlatform() {
                         </span>
                       </td>
                       <td>
-                        <button onClick={() => adminDeleteListing(l.id)}
-                          style={{padding:"4px 10px",borderRadius:6,border:"1px solid #fecaca",background:"#fff5f5",color:"#c0392b",fontSize:11,fontWeight:700,cursor:"pointer"}}>
-                          🗑 Delete
-                        </button>
+                        <div style={{display:"flex",gap:6,flexWrap:"wrap"}}>
+                          <button onClick={() => adminExpressInterest(l)}
+                            style={{padding:"4px 10px",borderRadius:6,border:"1px solid #a7f3d0",background:"#f0fdf4",color:"#065f46",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                            ✅ Interested
+                          </button>
+                          <button onClick={() => adminDeleteListing(l.id)}
+                            style={{padding:"4px 10px",borderRadius:6,border:"1px solid #fecaca",background:"#fff5f5",color:"#c0392b",fontSize:11,fontWeight:700,cursor:"pointer"}}>
+                            🗑 Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))}
