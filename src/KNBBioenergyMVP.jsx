@@ -1103,6 +1103,13 @@ export default function KNBPlatform() {
   // ── Farmer: incoming buyer enquiries ──
   const [farmerEnquiries, setFarmerEnquiries]   = useState([]);
   const [farmerEnqLoading, setFarmerEnqLoading] = useState(false);
+  // ── Edit Profile ──
+  const [editProfileOpen, setEditProfileOpen] = useState(false);
+  const [editName, setEditName]         = useState("");
+  const [editDistrict, setEditDistrict] = useState("");
+  const [editVillage, setEditVillage]   = useState("");
+  const [editState, setEditState]       = useState("");
+  const [editBusy, setEditBusy]         = useState(false);
   // ── Enquiry form (controlled inputs) ──
   const [enqName, setEnqName] = useState("");
   const [enqCompany, setEnqCompany] = useState("");
@@ -1294,6 +1301,10 @@ export default function KNBPlatform() {
   };
 
   useEffect(() => {
+    if (userProfile?.role === "farmer") { loadMyListings(); loadFarmerEnquiries(); }
+  }, [userProfile]);
+
+  useEffect(() => {
     if (activeNav === "products" && userProfile?.role === "farmer") loadMyListings();
   }, [activeNav, userProfile]);
 
@@ -1312,6 +1323,30 @@ export default function KNBPlatform() {
   useEffect(() => {
     if (activeNav === "exchange" && userProfile?.role === "farmer") loadFarmerEnquiries();
   }, [activeNav, userProfile]);
+
+  useEffect(() => {
+    if (editProfileOpen && userProfile) {
+      setEditName(userProfile.name || "");
+      setEditDistrict(userProfile.district || "");
+      setEditVillage(userProfile.village || "");
+      setEditState(userProfile.state || "Maharashtra");
+    }
+  }, [editProfileOpen]);
+
+  const saveProfile = async () => {
+    if (!editName.trim()) { showToast("Name is required."); return; }
+    setEditBusy(true);
+    try {
+      await setDoc(doc(db, "users", currentUser.uid), {
+        name: editName.trim(), district: editDistrict.trim(),
+        village: editVillage.trim(), state: editState,
+      }, { merge: true });
+      setUserProfile(prev => ({ ...prev, name: editName.trim(), district: editDistrict.trim(), village: editVillage.trim(), state: editState }));
+      setEditProfileOpen(false);
+      showToast("✅ Profile updated!");
+    } catch(e) { showToast("❌ Update failed."); }
+    setEditBusy(false);
+  };
 
   const adminExpressInterest = async (l) => {
     try {
@@ -1617,13 +1652,13 @@ export default function KNBPlatform() {
             <>
               {userProfile?.role === "farmer" ? (
                 <button className="btn-ghost" style={{fontSize:12,padding:"6px 12px",color:"var(--gold)",borderColor:"var(--gold)"}}
-                  onClick={() => setModal("farmer-dashboard")}>🌾 My Dashboard</button>
+                  onClick={() => navTo("products")}>🌾 My Listings</button>
               ) : (
                 <button className="btn-ghost" style={{fontSize:12,padding:"6px 12px"}}
                   onClick={() => setModal("myorders")}>📦 My Orders</button>
               )}
               <div style={{display:"flex",alignItems:"center",gap:8,padding:"5px 12px 5px 5px",background:"var(--mint)",borderRadius:20,border:"1px solid #a7f3d0",cursor:"pointer"}}
-                onClick={() => setModal(userProfile?.role === "farmer" ? "farmer-dashboard" : "myorders")}>
+                onClick={() => userProfile?.role === "farmer" ? setEditProfileOpen(true) : setModal("myorders")}>
                 <div style={{width:26,height:26,borderRadius:"50%",background: userProfile?.role==="farmer" ? "var(--gold)" : "var(--leaf)",color:"white",display:"flex",alignItems:"center",justifyContent:"center",fontSize:11,fontWeight:700,flexShrink:0}}>
                   {(userProfile?.name || "U")[0].toUpperCase()}
                 </div>
@@ -1660,8 +1695,115 @@ export default function KNBPlatform() {
         </div>
       </div>}
 
-      {/* HERO */}
-      <section className="hero">
+      {/* FARMER HOME DASHBOARD */}
+      {userProfile?.role === "farmer" && (<>
+
+        {/* Hero banner */}
+        <section style={{background:"linear-gradient(135deg,#0a4a2a 0%,#166534 60%,#15803d 100%)",padding:"56px 24px 64px",position:"relative",overflow:"hidden"}}>
+          <div style={{position:"absolute",inset:0,backgroundImage:"radial-gradient(circle at 80% 50%,rgba(255,255,255,0.04) 0%,transparent 60%)",pointerEvents:"none"}}/>
+          <div style={{maxWidth:1100,margin:"0 auto",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:32,position:"relative"}}>
+            <div>
+              <div style={{fontSize:12,fontWeight:700,color:"#86efac",letterSpacing:2,textTransform:"uppercase",marginBottom:10}}>Welcome back</div>
+              <div style={{fontSize:36,fontWeight:900,color:"#fff",lineHeight:1.1,marginBottom:8}}>
+                Hello, {userProfile?.name?.split(" ")[0] || "Farmer"} 🌾
+              </div>
+              <div style={{fontSize:14,color:"#bbf7d0",marginBottom:24}}>
+                📍 {[userProfile?.village,userProfile?.district,userProfile?.state].filter(Boolean).join(", ") || "Location not set"}
+              </div>
+              <div style={{display:"flex",gap:12,flexWrap:"wrap"}}>
+                <button onClick={()=>navTo("products")}
+                  style={{padding:"12px 28px",borderRadius:8,border:"none",background:"#22c55e",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer"}}>
+                  + Add Listing
+                </button>
+                <button onClick={()=>navTo("exchange")}
+                  style={{padding:"12px 28px",borderRadius:8,border:"1.5px solid rgba(255,255,255,0.3)",background:"transparent",color:"#fff",fontWeight:700,fontSize:14,cursor:"pointer"}}>
+                  My Orders {farmerEnquiries.length > 0 && <span style={{background:"#fbbf24",color:"#78350f",borderRadius:20,padding:"1px 7px",fontSize:11,marginLeft:4}}>{farmerEnquiries.length}</span>}
+                </button>
+                <button onClick={()=>setEditProfileOpen(true)}
+                  style={{padding:"12px 20px",borderRadius:8,border:"1.5px solid rgba(255,255,255,0.2)",background:"transparent",color:"rgba(255,255,255,0.7)",fontWeight:600,fontSize:13,cursor:"pointer"}}>
+                  ✏️ Edit Profile
+                </button>
+              </div>
+            </div>
+            {/* Stats */}
+            <div style={{display:"flex",gap:16,flexWrap:"wrap"}}>
+              {[
+                {label:"My Listings", value:myListings.length,                          bg:"rgba(255,255,255,0.1)"},
+                {label:"Active",      value:myListings.filter(l=>l.available).length,   bg:"rgba(34,197,94,0.2)"},
+                {label:"Orders",      value:farmerEnquiries.length,                     bg:"rgba(251,191,36,0.2)"},
+              ].map(s=>(
+                <div key={s.label} style={{background:s.bg,borderRadius:12,padding:"20px 28px",textAlign:"center",minWidth:100,border:"1px solid rgba(255,255,255,0.15)"}}>
+                  <div style={{fontSize:32,fontWeight:900,color:"#fff"}}>{s.value}</div>
+                  <div style={{fontSize:12,color:"#bbf7d0",marginTop:2,fontWeight:500}}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* First-listing prompt */}
+        {myListings.length === 0 && (
+          <div style={{background:"#fefce8",borderTop:"4px solid #fbbf24",padding:"20px 24px",display:"flex",justifyContent:"space-between",alignItems:"center",flexWrap:"wrap",gap:12}}>
+            <div>
+              <div style={{fontWeight:700,fontSize:15,color:"#78350f"}}>👋 You haven't listed anything yet!</div>
+              <div style={{fontSize:13,color:"#92400e",marginTop:3}}>Add your first biomass listing so KNB can find and contact you.</div>
+            </div>
+            <button onClick={()=>navTo("products")}
+              style={{padding:"10px 24px",borderRadius:8,border:"none",background:"#f59e0b",color:"#fff",fontWeight:700,fontSize:13,cursor:"pointer",flexShrink:0}}>
+              + Add First Listing →
+            </button>
+          </div>
+        )}
+
+        {/* Action cards */}
+        <section style={{background:"var(--paper)",padding:"40px 24px"}}>
+          <div style={{maxWidth:1100,margin:"0 auto"}}>
+            <div style={{fontSize:13,fontWeight:700,color:"var(--text-muted)",letterSpacing:1,textTransform:"uppercase",marginBottom:20}}>Quick Actions</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(280px,1fr))",gap:16}}>
+              {[
+                {icon:"🌾", title:"My Listings",  desc:"Add new biomass stock or manage your existing listings.",  nav:"products", border:"#a7f3d0", top:"var(--leaf)"},
+                {icon:"📬", title:"My Orders",    desc:"Check if KNB has expressed interest in buying your stock.", nav:"exchange", border:"#fde68a", top:"var(--gold)"},
+                {icon:"📞", title:"Contact KNB",  desc:"Call or WhatsApp our team to discuss prices and pickup.",   nav:"contact",  border:"var(--border)", top:"var(--soil)"},
+              ].map(a=>(
+                <div key={a.nav} onClick={()=>navTo(a.nav)}
+                  style={{background:"#fff",border:`1.5px solid ${a.border}`,borderRadius:14,padding:"28px 24px",cursor:"pointer",transition:"all .2s",boxShadow:"var(--shadow-sm)"}}
+                  onMouseEnter={e=>{e.currentTarget.style.boxShadow="var(--shadow-md)";e.currentTarget.style.transform="translateY(-2px)"}}
+                  onMouseLeave={e=>{e.currentTarget.style.boxShadow="var(--shadow-sm)";e.currentTarget.style.transform="none"}}>
+                  <div style={{fontSize:36,marginBottom:14}}>{a.icon}</div>
+                  <div style={{fontWeight:800,fontSize:17,color:a.top,marginBottom:6}}>{a.title}</div>
+                  <div style={{fontSize:13,color:"var(--text-muted)",lineHeight:1.5}}>{a.desc}</div>
+                  <div style={{marginTop:16,fontSize:12,fontWeight:700,color:a.top}}>Go →</div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section style={{background:"#fff",padding:"40px 24px 64px"}}>
+          <div style={{maxWidth:1100,margin:"0 auto"}}>
+            <div style={{fontSize:13,fontWeight:700,color:"var(--text-muted)",letterSpacing:1,textTransform:"uppercase",marginBottom:24}}>How It Works</div>
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(260px,1fr))",gap:16}}>
+              {[
+                ["1","List your stock","Add your biomass type, quantity and asking price in My Listings.","var(--leaf)"],
+                ["2","KNB reviews it","Our procurement team checks your listing and contacts you.","var(--gold)"],
+                ["3","Get paid","Agree on price over WhatsApp or call. We arrange pickup and payment.","#0ea5e9"],
+              ].map(([n,t,d,c])=>(
+                <div key={n} style={{display:"flex",gap:16,alignItems:"flex-start",background:"var(--cream)",borderRadius:12,padding:"20px"}}>
+                  <div style={{width:36,height:36,borderRadius:"50%",background:c,color:"#fff",fontWeight:900,fontSize:16,display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0}}>{n}</div>
+                  <div>
+                    <div style={{fontWeight:700,fontSize:14,color:"var(--soil)",marginBottom:4}}>{t}</div>
+                    <div style={{fontSize:13,color:"var(--text-muted)",lineHeight:1.5}}>{d}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+      </>)}
+
+      {/* HERO — buyers only */}
+      {userProfile?.role !== "farmer" && <section className="hero">
         <div className="hero-texture"/><div className="hero-glow"/>
         <div className="hero-inner">
           <div className="hero-left">
@@ -1701,10 +1843,10 @@ export default function KNBPlatform() {
             </div>
           </div>
         </div>
-      </section>
+      </section>}
 
-      {/* TRUST NUMBERS */}
-      <div className="trust-strip">
+      {/* TRUST NUMBERS — buyers only */}
+      {userProfile?.role !== "farmer" && <div className="trust-strip">
         <div className="trust-strip-inner">
           {[["₹48<em>Cr+</em>","Traded This Quarter"],["12,000<em>+</em>","MT Listed Monthly"],["240<em>+</em>","Verified Suppliers"],["18,000<em>+</em>","tCO₂e Credits Issued"]].map(([v,l],i) => (
             <div key={i} className="ts-item">
@@ -1713,7 +1855,7 @@ export default function KNBPlatform() {
             </div>
           ))}
         </div>
-      </div>
+      </div>}
 
       {/* HOME: FEATURED PRODUCTS — buyers only */}
       {userProfile?.role !== "farmer" && <section className="section" style={{background:"var(--paper)"}}>
@@ -1770,8 +1912,8 @@ export default function KNBPlatform() {
           <h2>Your biomass has <em>real value.</em></h2>
           <p>KNB buys paddy straw, sugarcane bagasse, cotton stalks & more. List your stock and get paid within days.</p>
           <div className="cta-buttons">
-            <button className="btn-harvest btn-xl" onClick={() => setModal("farmer-dashboard")}>🌾 List Your Biomass →</button>
-            <button className="btn-outline-leaf btn-xl" onClick={() => navTo("exchange")}>See Buying Prices</button>
+            <button className="btn-harvest btn-xl" onClick={() => navTo("products")}>🌾 My Listings →</button>
+            <button className="btn-outline-leaf btn-xl" onClick={() => navTo("exchange")}>My Orders</button>
           </div>
           <div className="cta-note">Free to list · No commission · KNB pays fair prices</div>
         </section>
@@ -1869,6 +2011,7 @@ export default function KNBPlatform() {
                         {l.district && <>&nbsp;·&nbsp; {l.district}, {l.state}</>}
                       </div>
                       {l.description && <div style={{fontSize:12,color:"var(--text-muted)",marginTop:4}}>{l.description}</div>}
+                      {l.createdAt && <div style={{fontSize:11,color:"var(--text-muted)",marginTop:4}}>📅 Added {new Date(l.createdAt).toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"})}</div>}
                     </div>
                     <span style={{padding:"3px 10px",borderRadius:20,fontSize:11,fontWeight:700,flexShrink:0,
                       background:l.available?"#d1fae5":"#f3f4f6",color:l.available?"#065f46":"var(--text-muted)"}}>
@@ -2712,7 +2855,7 @@ export default function KNBPlatform() {
             </div>
           </div>
           <div className="footer-bottom">
-            <div className="fb-left">© 2025 KNB Green Energy Ltd. Platform concept & architecture by JP Ventures. All rights reserved.</div>
+            <div className="fb-left">© 2025 KNB Green Energy Ltd. All rights reserved.</div>
             <div className="fb-right">
               <a>Privacy Policy</a><a>Terms of Use</a><a>Grievance</a>
             </div>
@@ -2909,6 +3052,57 @@ export default function KNBPlatform() {
             )}
             <div style={{marginTop:16,textAlign:"center",fontSize:12,color:"var(--text-muted)"}}>
               Need help? Call <strong>+91 99206 57193</strong> or <a href="https://wa.me/919920657193" target="_blank" rel="noreferrer" style={{color:"var(--leaf)"}}>WhatsApp us</a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── FLOATING WHATSAPP (farmers only) ── */}
+      {currentUser && userProfile?.role === "farmer" && (
+        <a href="https://wa.me/919920657193?text=Hi+KNB,+I+need+help+with+my+biomass+listing."
+          target="_blank" rel="noreferrer"
+          style={{position:"fixed",bottom:24,right:24,width:56,height:56,borderRadius:"50%",background:"#25d366",color:"#fff",display:"flex",alignItems:"center",justifyContent:"center",fontSize:26,boxShadow:"0 4px 16px rgba(0,0,0,0.25)",zIndex:9998,textDecoration:"none",transition:"transform .2s"}}
+          onMouseEnter={e=>e.currentTarget.style.transform="scale(1.1)"}
+          onMouseLeave={e=>e.currentTarget.style.transform="scale(1)"}>
+          💬
+        </a>
+      )}
+
+      {/* ── EDIT PROFILE MODAL ── */}
+      {editProfileOpen && (
+        <div className="overlay" onClick={e=>e.target===e.currentTarget&&setEditProfileOpen(false)}>
+          <div className="modal-box" style={{maxWidth:440,width:"100%"}}>
+            <div className="modal-hd">
+              <div className="modal-title">✏️ Edit Profile</div>
+              <button className="modal-close" onClick={()=>setEditProfileOpen(false)}>×</button>
+            </div>
+            <div style={{display:"flex",flexDirection:"column",gap:12}}>
+              <div className="mf">
+                <label>Full Name *</label>
+                <input value={editName} onChange={e=>setEditName(e.target.value)} placeholder="Your name"
+                  style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,boxSizing:"border-box"}}/>
+              </div>
+              <div className="mf">
+                <label>State</label>
+                <select value={editState} onChange={e=>setEditState(e.target.value)}
+                  style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,background:"#fff"}}>
+                  {INDIA_STATES.map(s=><option key={s}>{s}</option>)}
+                </select>
+              </div>
+              <div className="mf">
+                <label>District</label>
+                <input value={editDistrict} onChange={e=>setEditDistrict(e.target.value)} placeholder="e.g. Akola"
+                  style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,boxSizing:"border-box"}}/>
+              </div>
+              <div className="mf">
+                <label>Village / Taluka</label>
+                <input value={editVillage} onChange={e=>setEditVillage(e.target.value)} placeholder="e.g. Murtizapur"
+                  style={{width:"100%",padding:"10px 12px",borderRadius:8,border:"1.5px solid var(--border)",fontSize:14,boxSizing:"border-box"}}/>
+              </div>
+              <button onClick={saveProfile} disabled={editBusy}
+                style={{padding:"12px",borderRadius:8,border:"none",background:"var(--leaf)",color:"#fff",fontWeight:700,fontSize:14,cursor:editBusy?"not-allowed":"pointer",opacity:editBusy?0.6:1,marginTop:4}}>
+                {editBusy ? "Saving…" : "Save Changes"}
+              </button>
             </div>
           </div>
         </div>
